@@ -7,7 +7,10 @@
   },
   "generateOptions": {
     "spec": {
-      "class": false
+      "class": false,
+      "cl": false,
+      "guard": false,
+      "gu": false
     }
   }
 }
