@@ -2,6 +2,12 @@
 /dist
 /node_modules
 
+# runtime output
+data/*
+python/*
+!python/*.py
+!python/sample*
+
 # Logs
 logs
 *.log

@@ -3,7 +3,8 @@ import { Task } from './task';
 
 @Injectable()
 export class TaskService {
-  add(sessionId: string, values: any) {
-    console.log(new Task(sessionId, values));
+  addTask(sessionId: string, values: any) {
+    const task = new Task(sessionId, values);
+    task.saveInputfile();
   }
 }

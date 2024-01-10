@@ -7,6 +7,6 @@ export class TaskController {
 
   @Post()
   add(@Request() req: { sessionId: string }, @Body() values: number[]) {
-    this.tasksService.add(req.sessionId, values);
+    this.tasksService.addTask(req.sessionId, values);
   }
 }
