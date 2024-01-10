@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Task } from './task';
 
 @Injectable()
 export class TaskService {
-  add(values: any) {
-    console.log(values);
-  }
-
-  upload(values: any) {
-    console.log(values);
+  add(sessionId: string, values: any) {
+    console.log(new Task(sessionId, values));
   }
 }
