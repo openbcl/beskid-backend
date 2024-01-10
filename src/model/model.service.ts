@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Model } from './model';
 
 @Injectable()
@@ -11,12 +15,14 @@ export class ModelService {
     { name: 'AI Model 5', resolutions: [100] },
   ].map((value, key) => ({ id: key + 1, ...value }));
 
-  getModel(id: number) {
-    if (!!id && id <= this.models.length) {
-      return this.models[id - 1];
-    } else {
+  getModel(id: any) {
+    if (id != Number.parseInt(id, 10)) {
+      throw new BadRequestException();
+    }
+    if (id < 0 || id > this.models.length) {
       throw new NotFoundException();
     }
+    return this.models[id - 1];
   }
 
   getModels() {
