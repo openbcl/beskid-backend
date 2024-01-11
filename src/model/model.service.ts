@@ -8,14 +8,14 @@ import { Model } from './model';
 @Injectable()
 export class ModelService {
   models: Model[] = [
-    { name: 'AI Model 1', resolutions: [100] },
-    { name: 'AI Model 2', resolutions: [100] },
-    { name: 'AI Model 3', resolutions: [100] },
-    { name: 'AI Model 4', resolutions: [100] },
-    { name: 'AI Model 5', resolutions: [100] },
+    { name: 'model1', resolutions: [100] },
+    { name: 'model1', resolutions: [100] },
+    { name: 'model3', resolutions: [100] },
+    { name: 'model4', resolutions: [100] },
+    { name: 'model5', resolutions: [100] },
   ].map((value, key) => ({ id: key + 1, ...value }));
 
-  getModel(modelId: any) {
+  findModel(modelId: any) {
     const id = Number.parseInt(modelId, 10);
     if (modelId != id) {
       throw new BadRequestException();
@@ -26,7 +26,7 @@ export class ModelService {
     return this.models.find((model) => model.id === id);
   }
 
-  getModels() {
+  findModels() {
     return this.models;
   }
 }
