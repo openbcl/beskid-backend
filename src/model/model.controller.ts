@@ -5,9 +5,9 @@ import { ModelService } from './model.service';
 export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 
-  @Get(':id')
+  @Get(':modelId')
   getModel(@Param() params: any) {
-    return this.modelService.getModel(params.id);
+    return this.modelService.getModel(params.modelId);
   }
 
   @Get()

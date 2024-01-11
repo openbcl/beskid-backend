@@ -15,14 +15,15 @@ export class ModelService {
     { name: 'AI Model 5', resolutions: [100] },
   ].map((value, key) => ({ id: key + 1, ...value }));
 
-  getModel(id: any) {
-    if (id != Number.parseInt(id, 10)) {
+  getModel(modelId: any) {
+    const id = Number.parseInt(modelId, 10);
+    if (modelId != id) {
       throw new BadRequestException();
     }
     if (id < 0 || id > this.models.length) {
       throw new NotFoundException();
     }
-    return this.models[id - 1];
+    return this.models.find((model) => model.id === id);
   }
 
   getModels() {
