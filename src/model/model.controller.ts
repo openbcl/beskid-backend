@@ -6,8 +6,8 @@ export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 
   @Get(':modelId')
-  getModel(@Param() params: any) {
-    return this.modelService.getModel(params.modelId);
+  getModel(@Param('modelId') modelId: string) {
+    return this.modelService.getModel(modelId);
   }
 
   @Get()
