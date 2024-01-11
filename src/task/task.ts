@@ -3,7 +3,7 @@ import { join, resolve } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
 import { execSync } from 'child_process';
-import { Model } from 'src/model/model';
+import { Model } from '../model/model';
 
 export class Task {
   directory: string;
