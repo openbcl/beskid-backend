@@ -16,6 +16,11 @@ export class TaskController {
     return this.tasksService.findTask(req.sessionId, taskId, true, true);
   }
 
+  @Get()
+  findTasks(@Request() req: { sessionId: UUID }) {
+    return this.tasksService.findTasks(req.sessionId);
+  }
+
   @Post('/:taskId/model/:modelId/:resolution')
   runTask(
     @Request() req: { sessionId: UUID },

@@ -24,6 +24,15 @@ export class Task {
     this.inputFilename = `input_${this.timestamp(date)}.txt`;
   }
 
+  private timestamp = (date: Date) => {
+    return date
+      .toISOString()
+      .replaceAll(':', '-')
+      .replaceAll('T', '_')
+      .replaceAll('Z', '')
+      .slice(0, -4);
+  };
+
   saveInputfile = () => {
     if (!existsSync(this.directory)) {
       mkdirSync(this.directory, { recursive: true });
@@ -35,15 +44,6 @@ export class Task {
         encoding: 'utf8',
       },
     );
-  };
-
-  private timestamp = (date: Date) => {
-    return date
-      .toISOString()
-      .replaceAll(':', '-')
-      .replaceAll('T', '_')
-      .replaceAll('Z', '')
-      .slice(0, -4);
   };
 
   run = (model: Model) => {

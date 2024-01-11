@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Task } from './task';
 import { join, resolve } from 'path';
-import { readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync } from 'fs';
 import { UUID } from 'crypto';
 import { ModelService } from '../model/model.service';
 
@@ -34,59 +34,76 @@ export class TaskService {
   ) {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
     const sessionDirectory = resolve('data', sessionId);
-    const taskDirectory = readdirSync(sessionDirectory).find((name) =>
-      name.includes(taskId),
-    );
-    if (!taskDirectory) {
+    if (existsSync(sessionDirectory)) {
+      const taskDirectory = readdirSync(sessionDirectory).find((name) =>
+        name.includes(taskId),
+      );
+      if (!taskDirectory) {
+        throw new NotFoundException();
+      }
+      const directory = join(sessionDirectory, taskDirectory);
+      const training = !!Number.parseInt(taskDirectory[0]);
+      const inputFilename = readdirSync(directory).find((name) =>
+        name.match(/input_.+?.txt/),
+      );
+      const di = inputFilename.match(timestampRegEx);
+      if (!inputFilename || !di) {
+        throw new InternalServerErrorException();
+      }
+      const date = new Date(
+        Date.parse(
+          `${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`,
+        ),
+      );
+      const results = readdirSync(directory)
+        .filter((name) => name.match(/output_.+?.json/))
+        .map((filename) => {
+          const rm = filename.match(
+            this.composedRegex(/output_/, timestampRegEx, /_(.+?)_(\d+).json/),
+          );
+          if (!rm) {
+            throw new InternalServerErrorException();
+          }
+          const model = this.modelService.findModelByName(rm[7]);
+          const modelResoution = model.resolutions.find(
+            (resolution) => resolution == (rm[8] as any),
+          );
+          model.resolutions = [modelResoution];
+          return {
+            filename,
+            date: new Date(
+              Date.parse(
+                `${rm[1]}-${rm[2]}-${rm[3]}T${rm[4]}:${rm[5]}:${rm[6]}.000Z`,
+              ),
+            ),
+            model,
+          };
+        });
+      const task = new Task(
+        sessionId,
+        parseValues
+          ? this.parseInputfile(join(directory, inputFilename))
+          : undefined,
+        training,
+        taskId,
+        date,
+        results,
+      );
+      return toPartial ? task.toPartial() : task;
+    } else {
       throw new NotFoundException();
     }
-    const directory = join(sessionDirectory, taskDirectory);
-    const training = !!Number.parseInt(taskDirectory[0]);
-    const inputFilename = readdirSync(directory).find((name) =>
-      name.match(/input_.+?.txt/),
-    );
-    const di = inputFilename.match(timestampRegEx);
-    if (!inputFilename || !di) {
-      throw new InternalServerErrorException();
+  }
+
+  findTasks(sessionId: UUID) {
+    const sessionDirectory = resolve('data', sessionId);
+    if (existsSync(sessionDirectory)) {
+      return readdirSync(sessionDirectory).map((taskId: UUID) =>
+        this.findTask(sessionId, taskId),
+      );
+    } else {
+      throw new NotFoundException();
     }
-    const date = new Date(
-      Date.parse(`${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`),
-    );
-    const results = readdirSync(directory)
-      .filter((name) => name.match(/output_.+?.json/))
-      .map((filename) => {
-        const rm = filename.match(
-          this.composedRegex(/output_/, timestampRegEx, /_(.+?)_(\d+).json/),
-        );
-        if (!rm) {
-          throw new InternalServerErrorException();
-        }
-        const model = this.modelService.findModelByName(rm[7]);
-        const modelResoution = model.resolutions.find(
-          (resolution) => resolution == (rm[8] as any),
-        );
-        model.resolutions = [modelResoution];
-        return {
-          filename,
-          date: new Date(
-            Date.parse(
-              `${rm[1]}-${rm[2]}-${rm[3]}T${rm[4]}:${rm[5]}:${rm[6]}.000Z`,
-            ),
-          ),
-          model,
-        };
-      });
-    const task = new Task(
-      sessionId,
-      parseValues
-        ? this.parseInputfile(join(directory, inputFilename))
-        : undefined,
-      training,
-      taskId,
-      date,
-      results,
-    );
-    return toPartial ? task.toPartial() : task;
   }
 
   runTask(sessionId: UUID, taskId: UUID, modelId: any, resolution: any) {
