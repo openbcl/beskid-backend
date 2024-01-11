@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Task } from './task';
 import { join, resolve } from 'path';
-import { existsSync, readFileSync, readdirSync } from 'fs';
+import { existsSync, readFileSync, readdirSync, rmSync, lstatSync } from 'fs';
 import { UUID } from 'crypto';
 import { ModelService } from '../model/model.service';
 
@@ -26,6 +26,31 @@ export class TaskService {
     return task.toPartial();
   }
 
+  deleteTask(sessionId: UUID, taskId: UUID): Partial<Task> {
+    const sessionDirectory = resolve('data', sessionId);
+    const privateTaskPath = join(sessionDirectory, `0_${taskId}`);
+    const trainingTaskPath = join(sessionDirectory, `1_${taskId}`);
+    const taskDirectory = existsSync(privateTaskPath)
+      ? privateTaskPath
+      : trainingTaskPath;
+    if (taskDirectory === trainingTaskPath && !existsSync(taskDirectory)) {
+      throw new NotFoundException();
+    }
+    try {
+      rmSync(taskDirectory, { recursive: true, force: true });
+      if (
+        !readdirSync(sessionDirectory).filter((name) =>
+          lstatSync(join(sessionDirectory, name)).isDirectory(),
+        ).length
+      ) {
+        rmSync(sessionDirectory, { recursive: true, force: true });
+      }
+      return { id: taskId };
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
   findTask(
     sessionId: UUID,
     taskId: UUID,
@@ -35,9 +60,9 @@ export class TaskService {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
     const sessionDirectory = resolve('data', sessionId);
     if (existsSync(sessionDirectory)) {
-      const taskDirectory = readdirSync(sessionDirectory).find((name) =>
-        name.includes(taskId),
-      );
+      const taskDirectory = readdirSync(sessionDirectory)
+        .filter((name) => lstatSync(join(sessionDirectory, name)).isDirectory())
+        .find((name) => name.includes(taskId));
       if (!taskDirectory) {
         throw new NotFoundException();
       }
@@ -98,9 +123,9 @@ export class TaskService {
   findTasks(sessionId: UUID) {
     const sessionDirectory = resolve('data', sessionId);
     if (existsSync(sessionDirectory)) {
-      return readdirSync(sessionDirectory).map((taskId: UUID) =>
-        this.findTask(sessionId, taskId),
-      );
+      return readdirSync(sessionDirectory)
+        .filter((name) => lstatSync(join(sessionDirectory, name)).isDirectory())
+        .map((name: string) => this.findTask(sessionId, name.slice(2) as UUID));
     } else {
       throw new NotFoundException();
     }

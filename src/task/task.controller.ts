@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Request } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Request,
+} from '@nestjs/common';
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
 
@@ -9,6 +17,14 @@ export class TaskController {
   @Post()
   addTask(@Request() req: { sessionId: UUID }, @Body() values: number[]) {
     return this.tasksService.addTask(req.sessionId, values);
+  }
+
+  @Delete(':taskId')
+  deleteTask(
+    @Request() req: { sessionId: UUID },
+    @Param('taskId') taskId: UUID,
+  ) {
+    return this.tasksService.deleteTask(req.sessionId, taskId);
   }
 
   @Get(':taskId')
