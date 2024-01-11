@@ -2,6 +2,8 @@ import { UUID, randomUUID } from 'crypto';
 import { join, resolve } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
+import { execSync } from 'child_process';
+import { Model } from 'src/model/model';
 
 export class Task {
   directory: string;
@@ -13,6 +15,7 @@ export class Task {
     public training = false,
     public id: UUID = randomUUID(),
     public date = new Date(),
+    public results: { filename: string; date: Date; model: Model }[] = [],
   ) {
     this.directory = join(
       resolve('data', this.sessionId),
@@ -34,10 +37,6 @@ export class Task {
     );
   };
 
-  outputFileName = () => {
-    return `output_${this.timestamp(new Date())}.txt`;
-  };
-
   private timestamp = (date: Date) => {
     return date
       .toISOString()
@@ -46,4 +45,27 @@ export class Task {
       .replaceAll('Z', '')
       .slice(0, -4);
   };
+
+  run = (model: Model) => {
+    const script = join('..', '..', '..', 'python', 'dummy_code.py');
+    const date = new Date();
+    const outputFileName = `output_${this.timestamp(date)}_${model.name}_${model.resolutions[0]}`;
+    const process = `python ${script} ${outputFileName} ${model.name} ${this.inputFilename}`;
+    execSync(process, { cwd: this.directory });
+    this.results.push({
+      filename: outputFileName + '.json',
+      date,
+      model,
+    });
+    return this.toPartial();
+  };
+
+  toPartial = (): Partial<Task> => ({
+    id: this.id,
+    sessionId: this.sessionId,
+    values: this.values,
+    training: this.training,
+    date: this.date,
+    results: this.results,
+  });
 }

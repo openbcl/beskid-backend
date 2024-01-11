@@ -15,6 +15,10 @@ export class ModelService {
     { name: 'model5', resolutions: [100] },
   ].map((value, key) => ({ id: key + 1, ...value }));
 
+  findModelByName(modelName: string) {
+    return this.models.find((model) => model.name === modelName);
+  }
+
   findModel(modelId: any) {
     const id = Number.parseInt(modelId, 10);
     if (modelId != id) {
