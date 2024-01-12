@@ -35,19 +35,9 @@ export class TaskService {
   }
 
   deleteTask(sessionId: UUID, taskId: UUID): Partial<Task> {
-    const { sessionDirectory, taskDirectory } = this.findDirectories(
-      sessionId,
-      taskId,
-    );
+    const { taskDirectory } = this.findDirectories(sessionId, taskId);
     try {
       rmSync(taskDirectory, { recursive: true, force: true });
-      if (
-        !readdirSync(sessionDirectory).filter((name) =>
-          lstatSync(join(sessionDirectory, name)).isDirectory(),
-        ).length
-      ) {
-        rmSync(sessionDirectory, { recursive: true, force: true });
-      }
       return { id: taskId };
     } catch {
       throw new InternalServerErrorException();
