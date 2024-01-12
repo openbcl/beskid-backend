@@ -64,7 +64,6 @@ export class Task {
 
   toPartial = (): Partial<Task> => ({
     id: this.id,
-    sessionId: this.sessionId,
     values: this.values,
     training: this.training,
     date: this.date,

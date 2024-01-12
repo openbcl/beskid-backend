@@ -61,66 +61,52 @@ export class TaskService {
     parseValues = false,
   ) {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
-    const sessionDirectory = resolve('data', sessionId);
-    if (existsSync(sessionDirectory)) {
-      const taskDirectoryName = readdirSync(sessionDirectory)
-        .filter((name) => lstatSync(join(sessionDirectory, name)).isDirectory())
-        .find((name) => name.includes(taskId));
-      if (!taskDirectoryName) {
-        throw new NotFoundException();
-      }
-      const taskDirectory = join(sessionDirectory, taskDirectoryName);
-      const training = !!Number.parseInt(taskDirectoryName[0]);
-      const inputFilename = readdirSync(taskDirectory).find((name) =>
-        name.match(/input_.+?.txt/),
-      );
-      const di = inputFilename.match(timestampRegEx);
-      if (!inputFilename || !di) {
-        throw new InternalServerErrorException();
-      }
-      const date = new Date(
-        Date.parse(
-          `${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`,
-        ),
-      );
-      const results = readdirSync(taskDirectory)
-        .filter((name) => name.match(/output_.+?.json/))
-        .map((filename) => {
-          const rm = filename.match(
-            this.composedRegex(/output_/, timestampRegEx, /_(.+?)_(\d+).json/),
-          );
-          if (!rm) {
-            throw new InternalServerErrorException();
-          }
-          const model = this.modelService.findModelByName(rm[7]);
-          const modelResoution = model.resolutions.find(
-            (resolution) => resolution == (rm[8] as any),
-          );
-          model.resolutions = [modelResoution];
-          return {
-            filename,
-            date: new Date(
-              Date.parse(
-                `${rm[1]}-${rm[2]}-${rm[3]}T${rm[4]}:${rm[5]}:${rm[6]}.000Z`,
-              ),
-            ),
-            model,
-          };
-        });
-      const task = new Task(
-        sessionId,
-        parseValues
-          ? this.parseInputfile(join(taskDirectory, inputFilename))
-          : undefined,
-        training,
-        taskId,
-        date,
-        results,
-      );
-      return toPartial ? task.toPartial() : task;
-    } else {
-      throw new NotFoundException();
+    const { taskDirectory, training } = this.findDirectories(sessionId, taskId);
+    const inputFilename = readdirSync(taskDirectory).find((name) =>
+      name.match(/input_.+?.txt/),
+    );
+    const di = inputFilename.match(timestampRegEx);
+    if (!inputFilename || !di) {
+      throw new InternalServerErrorException();
     }
+    const date = new Date(
+      Date.parse(`${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`),
+    );
+    const results = readdirSync(taskDirectory)
+      .filter((name) => name.match(/output_.+?.json/))
+      .map((filename) => {
+        const rm = filename.match(
+          this.composedRegex(/output_/, timestampRegEx, /_(.+?)_(\d+).json/),
+        );
+        if (!rm) {
+          throw new InternalServerErrorException();
+        }
+        const model = this.modelService.findModelByName(rm[7]);
+        const modelResoution = model.resolutions.find(
+          (resolution) => resolution == (rm[8] as any),
+        );
+        model.resolutions = [modelResoution];
+        return {
+          filename,
+          date: new Date(
+            Date.parse(
+              `${rm[1]}-${rm[2]}-${rm[3]}T${rm[4]}:${rm[5]}:${rm[6]}.000Z`,
+            ),
+          ),
+          model,
+        };
+      });
+    const task = new Task(
+      sessionId,
+      parseValues
+        ? this.parseInputfile(join(taskDirectory, inputFilename))
+        : undefined,
+      training,
+      taskId,
+      date,
+      results,
+    );
+    return toPartial ? task.toPartial() : task;
   }
 
   findTasks(sessionId: UUID) {
@@ -192,15 +178,17 @@ export class TaskService {
 
   private findDirectories(sessionId: UUID, taskId: UUID) {
     const sessionDirectory = resolve('data', sessionId);
-    const privateTaskPath = join(sessionDirectory, `0_${taskId}`);
-    const trainingTaskPath = join(sessionDirectory, `1_${taskId}`);
-    const taskDirectory = existsSync(privateTaskPath)
-      ? privateTaskPath
-      : trainingTaskPath;
-    if (taskDirectory === trainingTaskPath && !existsSync(taskDirectory)) {
+    if (!existsSync(sessionDirectory)) {
       throw new NotFoundException();
     }
-    return { sessionDirectory, taskDirectory };
+    const privateTaskPath = join(sessionDirectory, `0_${taskId}`);
+    const trainingTaskPath = join(sessionDirectory, `1_${taskId}`);
+    const training = existsSync(trainingTaskPath);
+    const taskDirectory = training ? trainingTaskPath : privateTaskPath;
+    if (taskDirectory === privateTaskPath && !existsSync(privateTaskPath)) {
+      throw new NotFoundException();
+    }
+    return { sessionDirectory, taskDirectory, training };
   }
 
   private composedRegex = (...regexes: RegExp[]) =>
