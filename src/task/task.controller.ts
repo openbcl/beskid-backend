@@ -37,7 +37,7 @@ export class TaskController {
     return this.tasksService.findTasks(req.sessionId);
   }
 
-  @Post('/:taskId/model/:modelId/:resolution')
+  @Post('/:taskId/model/:modelId/resolution/:resolution')
   runTask(
     @Request() req: { sessionId: UUID },
     @Param('taskId') taskId: UUID,
@@ -52,7 +52,7 @@ export class TaskController {
     );
   }
 
-  @Get('/:taskId/result/:file')
+  @Get('/:taskId/results/:file')
   findTaskResult(
     @Request() req: { sessionId: UUID },
     @Param('taskId') taskId: UUID,
