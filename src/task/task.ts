@@ -41,7 +41,7 @@ export class Task {
     }
     writeFileSync(
       join(this.directory, this.inputFilename),
-      this.values.join(EOL),
+      this.values.map((value) => value.toExponential(18)).join(EOL),
       { encoding },
     );
   };
