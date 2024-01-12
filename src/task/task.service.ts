@@ -20,6 +20,7 @@ import {
 } from 'fs';
 import { UUID } from 'crypto';
 import { ModelService } from '../model/model.service';
+import { encoding } from '../config';
 
 @Injectable()
 export class TaskService {
@@ -142,7 +143,7 @@ export class TaskService {
       throw new NotFoundException();
     }
     try {
-      return JSON.parse(readFileSync(filepath, 'utf8'));
+      return JSON.parse(readFileSync(filepath, encoding));
     } catch {
       throw new InternalServerErrorException();
     }
@@ -151,7 +152,7 @@ export class TaskService {
   private parseInputfile = (filepath: string): number[] => {
     let values: number[];
     try {
-      values = readFileSync(filepath, 'utf8')
+      values = readFileSync(filepath, encoding)
         .replaceAll('\r\n', '\n')
         .split('\n')
         .map((value) => value.trim())

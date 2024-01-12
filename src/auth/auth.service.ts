@@ -3,6 +3,7 @@ import { UUID, randomUUID } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { join, resolve } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { encoding, expirationFile } from '../config';
 
 @Injectable()
 export class AuthService {
@@ -23,8 +24,11 @@ export class AuthService {
     if (!existsSync(sessionDirectory)) {
       mkdirSync(sessionDirectory, { recursive: true });
     }
-    console.log(new Date(decoded.exp * 1000));
-    writeFileSync(join(sessionDirectory, '.exp'), `${decoded.exp * 1000}`);
+    writeFileSync(
+      join(sessionDirectory, expirationFile),
+      `${decoded.exp * 1000}`,
+      encoding,
+    );
     return session;
   }
 }

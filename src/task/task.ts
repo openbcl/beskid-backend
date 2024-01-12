@@ -5,6 +5,7 @@ import { EOL } from 'os';
 import { execSync } from 'child_process';
 import { Model } from '../model/model';
 import { Logger } from '@nestjs/common';
+import { encoding } from '../config';
 
 export class Task {
   directory: string;
@@ -41,9 +42,7 @@ export class Task {
     writeFileSync(
       join(this.directory, this.inputFilename),
       this.values.join(EOL),
-      {
-        encoding: 'utf8',
-      },
+      { encoding },
     );
   };
 
@@ -53,7 +52,7 @@ export class Task {
     const outputFileName = `output_${this.timestamp(date)}_${model.name}_${model.resolutions[0]}`;
     const process = `python ${script} ${outputFileName} ${model.name} ${this.inputFilename}`;
     const out = execSync(process, { cwd: this.directory });
-    Logger.log(out.toString('utf8'), `TASK: ${this.id}`);
+    Logger.log(out.toString(encoding), `TASK: ${this.id}`);
     this.results.push({
       filename: outputFileName + '.json',
       date,
