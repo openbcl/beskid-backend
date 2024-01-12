@@ -51,4 +51,13 @@ export class TaskController {
       resolution,
     );
   }
+
+  @Get('/:taskId/result/:file')
+  findTaskResult(
+    @Request() req: { sessionId: UUID },
+    @Param('taskId') taskId: UUID,
+    @Param('file') file: string,
+  ) {
+    return this.tasksService.findTaskResult(req.sessionId, taskId, file);
+  }
 }

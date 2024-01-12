@@ -5,11 +5,19 @@ import {
   InternalServerErrorException,
   NotFoundException,
   NotImplementedException,
+  StreamableFile,
   forwardRef,
 } from '@nestjs/common';
 import { Task } from './task';
 import { join, resolve } from 'path';
-import { existsSync, readFileSync, readdirSync, rmSync, lstatSync } from 'fs';
+import {
+  existsSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  lstatSync,
+  createReadStream,
+} from 'fs';
 import { UUID } from 'crypto';
 import { ModelService } from '../model/model.service';
 
@@ -27,15 +35,10 @@ export class TaskService {
   }
 
   deleteTask(sessionId: UUID, taskId: UUID): Partial<Task> {
-    const sessionDirectory = resolve('data', sessionId);
-    const privateTaskPath = join(sessionDirectory, `0_${taskId}`);
-    const trainingTaskPath = join(sessionDirectory, `1_${taskId}`);
-    const taskDirectory = existsSync(privateTaskPath)
-      ? privateTaskPath
-      : trainingTaskPath;
-    if (taskDirectory === trainingTaskPath && !existsSync(taskDirectory)) {
-      throw new NotFoundException();
-    }
+    const { sessionDirectory, taskDirectory } = this.findDirectories(
+      sessionId,
+      taskId,
+    );
     try {
       rmSync(taskDirectory, { recursive: true, force: true });
       if (
@@ -60,15 +63,15 @@ export class TaskService {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
     const sessionDirectory = resolve('data', sessionId);
     if (existsSync(sessionDirectory)) {
-      const taskDirectory = readdirSync(sessionDirectory)
+      const taskDirectoryName = readdirSync(sessionDirectory)
         .filter((name) => lstatSync(join(sessionDirectory, name)).isDirectory())
         .find((name) => name.includes(taskId));
-      if (!taskDirectory) {
+      if (!taskDirectoryName) {
         throw new NotFoundException();
       }
-      const directory = join(sessionDirectory, taskDirectory);
-      const training = !!Number.parseInt(taskDirectory[0]);
-      const inputFilename = readdirSync(directory).find((name) =>
+      const taskDirectory = join(sessionDirectory, taskDirectoryName);
+      const training = !!Number.parseInt(taskDirectoryName[0]);
+      const inputFilename = readdirSync(taskDirectory).find((name) =>
         name.match(/input_.+?.txt/),
       );
       const di = inputFilename.match(timestampRegEx);
@@ -80,7 +83,7 @@ export class TaskService {
           `${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`,
         ),
       );
-      const results = readdirSync(directory)
+      const results = readdirSync(taskDirectory)
         .filter((name) => name.match(/output_.+?.json/))
         .map((filename) => {
           const rm = filename.match(
@@ -107,7 +110,7 @@ export class TaskService {
       const task = new Task(
         sessionId,
         parseValues
-          ? this.parseInputfile(join(directory, inputFilename))
+          ? this.parseInputfile(join(taskDirectory, inputFilename))
           : undefined,
         training,
         taskId,
@@ -142,6 +145,33 @@ export class TaskService {
     }
   }
 
+  findTaskResult(
+    sessionId: UUID,
+    taskId: UUID,
+    filename: string,
+  ): StreamableFile | any {
+    const extension = '.json';
+    const { taskDirectory } = this.findDirectories(sessionId, taskId);
+    // if filename contains extension: provide download
+    if (filename.slice(-5).toLocaleLowerCase() === extension) {
+      const filepath = join(taskDirectory, filename);
+      if (!existsSync(filepath)) {
+        throw new NotFoundException();
+      }
+      return new StreamableFile(createReadStream(filepath));
+    }
+    // if filename does not contain extension: return filecontent
+    const filepath = join(taskDirectory, filename + extension);
+    if (!existsSync(filepath)) {
+      throw new NotFoundException();
+    }
+    try {
+      return JSON.parse(readFileSync(filepath, 'utf8'));
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
   private parseInputfile = (filepath: string): number[] => {
     let values: number[];
     try {
@@ -159,6 +189,19 @@ export class TaskService {
     }
     return values;
   };
+
+  private findDirectories(sessionId: UUID, taskId: UUID) {
+    const sessionDirectory = resolve('data', sessionId);
+    const privateTaskPath = join(sessionDirectory, `0_${taskId}`);
+    const trainingTaskPath = join(sessionDirectory, `1_${taskId}`);
+    const taskDirectory = existsSync(privateTaskPath)
+      ? privateTaskPath
+      : trainingTaskPath;
+    if (taskDirectory === trainingTaskPath && !existsSync(taskDirectory)) {
+      throw new NotFoundException();
+    }
+    return { sessionDirectory, taskDirectory };
+  }
 
   private composedRegex = (...regexes: RegExp[]) =>
     new RegExp(regexes.map((regex) => regex.source).join(''));
