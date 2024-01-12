@@ -29,12 +29,15 @@ def generate_parameter(id, model_name, data_array):
 
 
     # dictionary with parameter names as keys
-    output_dict = {f"parameter {i+1}": value for i, value in enumerate(output_values)}
+    # output_dict = {f"parameter {i+1}": value for i, value in enumerate(output_values)}
+
+    # array with name and value properties
+    output_structured = [{ "name": f"parameter {i+1}", "value": value } for i, value in enumerate(output_values) ]
 
     # saving the output in json format with the  given id as the filename
     output_filename = f"{id}.json"
     with open(output_filename, 'w') as json_file:
-        json.dump(output_dict, json_file)
+        json.dump(output_structured, json_file, indent=2)
 
     return output_filename
 
