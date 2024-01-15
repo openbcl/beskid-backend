@@ -1,11 +1,24 @@
 import { UUID, randomUUID } from 'crypto';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
 import { execSync } from 'child_process';
 import { Model } from '../model/model';
 import { Logger } from '@nestjs/common';
-import { encoding } from '../config';
+import { dataDirectory, encoding, extension } from '../config';
+
+export interface Result {
+  filename: string;
+  date: Date;
+  model: Model;
+  evaluation: EvaluateOptions;
+}
+
+export enum EvaluateOptions {
+  'UNVALUED',
+  'RIGHT',
+  'WRONG',
+}
 
 export class Task {
   directory: string;
@@ -17,10 +30,11 @@ export class Task {
     public training = false,
     public id: UUID = randomUUID(),
     public date = new Date(),
-    public results: { filename: string; date: Date; model: Model }[] = [],
+    public results: Result[] = [],
   ) {
     this.directory = join(
-      resolve('data', this.sessionId),
+      dataDirectory,
+      this.sessionId,
       `${this.training ? '1' : '0'}_${this.id}`,
     );
     this.inputFilename = `input_${this.timestamp(date)}.txt`;
@@ -54,9 +68,10 @@ export class Task {
     const out = execSync(process, { cwd: this.directory });
     Logger.log(out.toString(encoding), `TASK: ${this.id}`);
     this.results.push({
-      filename: outputFileName + '.json',
+      filename: outputFileName + extension,
       date,
       model,
+      evaluation: EvaluateOptions.UNVALUED,
     });
     return this.toPartial();
   };

@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Request,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
@@ -59,5 +60,20 @@ export class TaskController {
     @Param('file') file: string,
   ) {
     return this.tasksService.findTaskResult(req.sessionId, taskId, file);
+  }
+
+  @Put('/:taskId/results/:file')
+  evaluateTaskResult(
+    @Request() req: { sessionId: UUID },
+    @Param('taskId') taskId: UUID,
+    @Param('file') file: string,
+    @Body() data: { evaluation: number },
+  ) {
+    return this.tasksService.evaluateTaskResult(
+      req.sessionId,
+      taskId,
+      file,
+      data.evaluation,
+    );
   }
 }

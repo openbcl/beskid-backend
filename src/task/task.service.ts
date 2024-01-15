@@ -5,11 +5,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
   NotImplementedException,
+  ForbiddenException,
   StreamableFile,
   forwardRef,
 } from '@nestjs/common';
-import { Task } from './task';
-import { join, resolve } from 'path';
+import { EvaluateOptions, Task } from './task';
+import { join } from 'path';
 import {
   existsSync,
   readFileSync,
@@ -17,10 +18,18 @@ import {
   rmSync,
   lstatSync,
   createReadStream,
+  mkdirSync,
+  copyFileSync,
+  renameSync,
 } from 'fs';
 import { UUID } from 'crypto';
 import { ModelService } from '../model/model.service';
-import { encoding } from '../config';
+import {
+  dataDirectory,
+  encoding,
+  extension,
+  trainingDirectory,
+} from '../config';
 
 @Injectable()
 export class TaskService {
@@ -85,6 +94,25 @@ export class TaskService {
             ),
           ),
           model,
+          evaluation: existsSync(
+            join(
+              trainingDirectory,
+              taskId,
+              EvaluateOptions[EvaluateOptions.RIGHT],
+              filename,
+            ),
+          )
+            ? EvaluateOptions.RIGHT
+            : existsSync(
+                  join(
+                    trainingDirectory,
+                    taskId,
+                    EvaluateOptions[EvaluateOptions.WRONG],
+                    filename,
+                  ),
+                )
+              ? EvaluateOptions.WRONG
+              : EvaluateOptions.UNVALUED,
         };
       });
     const task = new Task(
@@ -101,7 +129,7 @@ export class TaskService {
   }
 
   findTasks(sessionId: UUID) {
-    const sessionDirectory = resolve('data', sessionId);
+    const sessionDirectory = join(dataDirectory, sessionId);
     if (existsSync(sessionDirectory)) {
       return readdirSync(sessionDirectory)
         .filter((name) => lstatSync(join(sessionDirectory, name)).isDirectory())
@@ -127,10 +155,9 @@ export class TaskService {
     taskId: UUID,
     filename: string,
   ): StreamableFile | any {
-    const extension = '.json';
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     // if filename contains extension: provide download
-    if (filename.slice(-5).toLocaleLowerCase() === extension) {
+    if (filename.slice(-extension.length).toLocaleLowerCase() === extension) {
       const filepath = join(taskDirectory, filename);
       if (!existsSync(filepath)) {
         throw new NotFoundException();
@@ -147,6 +174,114 @@ export class TaskService {
     } catch {
       throw new InternalServerErrorException();
     }
+  }
+
+  evaluateTaskResult(
+    sessionId: UUID,
+    taskId: UUID,
+    filename: string,
+    evalutation: number,
+  ) {
+    if (
+      !Object.values(EvaluateOptions)
+        .filter((v) => !isNaN(Number(v)))
+        .includes(evalutation)
+    ) {
+      throw new BadRequestException();
+    }
+    const task = this.findTask(sessionId, taskId, false);
+    if (!task.training) {
+      throw new ForbiddenException();
+    }
+    const evaluatedResult = task.results.find(
+      (unvaluedResult) =>
+        unvaluedResult.filename ===
+        (filename.slice(-extension.length).toLocaleLowerCase() === extension
+          ? filename
+          : filename + extension),
+    );
+    if (!evaluatedResult) {
+      throw new NotFoundException();
+    }
+    const trainingTaskDirectory = join(trainingDirectory, task.id);
+    try {
+      if (evalutation === EvaluateOptions.UNVALUED) {
+        const cleanup = (evaluation: EvaluateOptions) => {
+          const evaluationPath = join(
+            trainingTaskDirectory,
+            EvaluateOptions[evaluation],
+            evaluatedResult.filename,
+          );
+          if (existsSync(evaluationPath)) {
+            rmSync(evaluationPath, { force: true });
+            const evaluationDirectory = join(
+              trainingTaskDirectory,
+              EvaluateOptions[evaluation],
+            );
+            if (!readdirSync(evaluationDirectory).length) {
+              rmSync(evaluationDirectory, { recursive: true, force: true });
+            }
+            if (readdirSync(trainingTaskDirectory).length === 1) {
+              rmSync(trainingTaskDirectory, { recursive: true, force: true });
+            }
+            return true;
+          }
+          return false;
+        };
+        cleanup(EvaluateOptions.RIGHT) || cleanup(EvaluateOptions.WRONG);
+      } else {
+        if (!existsSync(trainingTaskDirectory)) {
+          mkdirSync(trainingTaskDirectory, { recursive: true });
+          copyFileSync(
+            join(task.directory, task.inputFilename),
+            join(trainingTaskDirectory, task.inputFilename),
+          );
+        }
+        const preEvaluationDirectory = join(
+          trainingTaskDirectory,
+          EvaluateOptions[
+            evalutation !== EvaluateOptions.RIGHT
+              ? EvaluateOptions.RIGHT
+              : EvaluateOptions.WRONG
+          ],
+        );
+        const wrongEvaluatedPath = join(
+          preEvaluationDirectory,
+          evaluatedResult.filename,
+        );
+        const evaluationDirectory = join(
+          trainingTaskDirectory,
+          EvaluateOptions[evalutation],
+        );
+        if (!existsSync(evaluationDirectory)) {
+          mkdirSync(evaluationDirectory, { recursive: true });
+        }
+        if (existsSync(wrongEvaluatedPath)) {
+          renameSync(
+            wrongEvaluatedPath,
+            join(evaluationDirectory, evaluatedResult.filename),
+          );
+          if (!readdirSync(preEvaluationDirectory).length) {
+            rmSync(preEvaluationDirectory, { recursive: true, force: true });
+          }
+        } else {
+          copyFileSync(
+            join(task.directory, evaluatedResult.filename),
+            join(evaluationDirectory, evaluatedResult.filename),
+          );
+        }
+      }
+    } catch (err) {
+      console.log(err);
+      throw new InternalServerErrorException();
+    }
+    evaluatedResult.evaluation = evalutation;
+    task.results = task.results.map((unvaluedResult) =>
+      unvaluedResult.filename !== evaluatedResult.filename
+        ? unvaluedResult
+        : evaluatedResult,
+    );
+    return task.toPartial();
   }
 
   private parseInputfile = (filepath: string): number[] => {
@@ -168,7 +303,7 @@ export class TaskService {
   };
 
   private findDirectories(sessionId: UUID, taskId: UUID) {
-    const sessionDirectory = resolve('data', sessionId);
+    const sessionDirectory = join(dataDirectory, sessionId);
     if (!existsSync(sessionDirectory)) {
       throw new NotFoundException();
     }

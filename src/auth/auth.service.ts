@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { UUID, randomUUID } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
-import { join, resolve } from 'path';
+import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { encoding, expirationFile } from '../config';
+import { dataDirectory, encoding, expirationFile } from '../config';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +20,7 @@ export class AuthService {
   private provideSession(sessionId: UUID) {
     const session = this.jwtService.sign({ sessionId });
     const decoded = this.jwtService.decode(session);
-    const sessionDirectory = resolve('data', sessionId);
+    const sessionDirectory = join(dataDirectory, sessionId);
     if (!existsSync(sessionDirectory)) {
       mkdirSync(sessionDirectory, { recursive: true });
     }

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { lstatSync, readFileSync, readdirSync, rmSync } from 'fs';
-import { join, resolve } from 'path';
-import { encoding, expirationFile } from './config';
+import { join } from 'path';
+import { dataDirectory, encoding, expirationFile } from './config';
 
 @Injectable()
 export class AppService {
@@ -11,7 +11,6 @@ export class AppService {
 
   async clearSessions() {
     Logger.log('Search for expired sessions...', 'AppService');
-    const dataDirectory = resolve('data');
     readdirSync(dataDirectory)
       .map((sessionID) => ({
         sessionID,
