@@ -8,6 +8,7 @@ import {
   ForbiddenException,
   StreamableFile,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { EvaluateOptions, Task } from './task';
 import { join } from 'path';
@@ -41,6 +42,10 @@ export class TaskService {
   addTask(sessionId: UUID, values: any) {
     const task = new Task(sessionId, values);
     task.saveInputfile();
+    Logger.log(
+      `Created new task "${task.id}" for session "${sessionId}"`,
+      'TaskService',
+    );
     return task.toPartial();
   }
 
@@ -54,6 +59,12 @@ export class TaskService {
       join(dataDirectory, sessionId, `${training ? '1' : '0'}_${taskId}`),
     );
     task.training = training;
+    Logger.log(
+      `${training ? 'Enabled' : 'Disabled'} training for task "${
+        task.id
+      }" of session "${sessionId}"`,
+      'TaskService',
+    );
     return task.toPartial();
   }
 
@@ -61,8 +72,13 @@ export class TaskService {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     try {
       rmSync(taskDirectory, { recursive: true, force: true });
+      Logger.log(
+        `Deleted task "${taskId}" of session "${sessionId}"`,
+        'TaskService',
+      );
       return { id: taskId };
-    } catch {
+    } catch (err) {
+      Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
   }
@@ -80,6 +96,7 @@ export class TaskService {
     );
     const di = inputFilename.match(timestampRegEx);
     if (!inputFilename || !di) {
+      Logger.error(`Inputfile of task "${taskId}" not found`, 'TaskService');
       throw new InternalServerErrorException();
     }
     const date = new Date(
@@ -92,6 +109,10 @@ export class TaskService {
           this.composedRegex(/output_/, timestampRegEx, /_(.+?)_(\d+).json/),
         );
         if (!rm) {
+          Logger.error(
+            `A result file of task "${taskId}" has been renamed`,
+            'TaskService',
+          );
           throw new InternalServerErrorException();
         }
         const model = this.modelService.findModelByName(rm[7]);
@@ -157,6 +178,7 @@ export class TaskService {
     const modelResoution = model.resolutions.find((res) => res == resolution);
     if (modelResoution > 0) {
       model.resolutions = [modelResoution];
+      Logger.log(`Running task "${taskId}" ...`, 'TaskService');
       return this.findTask(sessionId, taskId, false).run(model);
     } else {
       throw new BadRequestException();
@@ -184,7 +206,8 @@ export class TaskService {
     }
     try {
       return JSON.parse(readFileSync(filepath, encoding));
-    } catch {
+    } catch (err) {
+      Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
   }
@@ -285,15 +308,20 @@ export class TaskService {
         }
       }
     } catch (err) {
-      console.log(err);
+      Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
     evaluatedResult.evaluation = evalutation;
-    task.results = task.results.map((unvaluedResult) =>
-      unvaluedResult.filename !== evaluatedResult.filename
-        ? unvaluedResult
-        : evaluatedResult,
-    );
+    task.results = task.results.map((unvaluedResult) => {
+      if (unvaluedResult.filename !== evaluatedResult.filename) {
+        return unvaluedResult;
+      }
+      Logger.log(
+        `Evaluated result "${evaluatedResult.filename}" of task "${task.id}" as "${EvaluateOptions[evalutation]}"`,
+        'TaskService',
+      );
+      return evaluatedResult;
+    });
     return task.toPartial();
   }
 
@@ -306,7 +334,8 @@ export class TaskService {
         .map((value) => value.trim())
         .filter((value) => !!value?.length)
         .map((value) => Number.parseFloat(value));
-    } catch {
+    } catch (err) {
+      Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
     if (values.length !== 100) {

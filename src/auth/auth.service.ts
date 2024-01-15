@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { UUID, randomUUID } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { join } from 'path';
@@ -10,14 +10,18 @@ export class AuthService {
   constructor(private jwtService: JwtService) {}
 
   newSession() {
-    return this.provideSession(randomUUID());
+    const { session, sessionId } = this.provideSession();
+    Logger.log(`Init new session "${sessionId}"`, 'AuthService');
+    return session;
   }
 
   renewSession(sessionId: UUID) {
-    return this.provideSession(sessionId);
+    const { session } = this.provideSession(sessionId);
+    Logger.log(`Renew session "${sessionId}"`, 'AuthService');
+    return session;
   }
 
-  private provideSession(sessionId: UUID) {
+  private provideSession(sessionId: UUID = randomUUID()) {
     const session = this.jwtService.sign({ sessionId });
     const decoded = this.jwtService.decode(session);
     const sessionDirectory = join(dataDirectory, sessionId);
@@ -29,6 +33,6 @@ export class AuthService {
       `${decoded.exp * 1000}`,
       encoding,
     );
-    return session;
+    return { session, sessionId };
   }
 }
