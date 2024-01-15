@@ -44,8 +44,4 @@ export class AppService {
     await new Promise((resolve) => setTimeout(resolve, 900000));
     this.clearSessions();
   }
-
-  getHello(): string {
-    return 'Hello World!';
-  }
 }

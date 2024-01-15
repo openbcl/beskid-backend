@@ -188,19 +188,19 @@ export class TaskService {
   findTaskResult(
     sessionId: UUID,
     taskId: UUID,
-    filename: string,
+    fileId: string,
   ): StreamableFile | any {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     // if filename contains extension: provide download
-    if (filename.slice(-extension.length).toLocaleLowerCase() === extension) {
-      const filepath = join(taskDirectory, filename);
+    if (fileId.slice(-extension.length).toLocaleLowerCase() === extension) {
+      const filepath = join(taskDirectory, fileId);
       if (!existsSync(filepath)) {
         throw new NotFoundException();
       }
       return new StreamableFile(createReadStream(filepath));
     }
     // if filename does not contain extension: return filecontent
-    const filepath = join(taskDirectory, filename + extension);
+    const filepath = join(taskDirectory, fileId + extension);
     if (!existsSync(filepath)) {
       throw new NotFoundException();
     }
@@ -215,7 +215,7 @@ export class TaskService {
   evaluateTaskResult(
     sessionId: UUID,
     taskId: UUID,
-    filename: string,
+    fileId: string,
     evalutation: number,
   ) {
     if (
@@ -232,9 +232,9 @@ export class TaskService {
     const evaluatedResult = task.results.find(
       (unvaluedResult) =>
         unvaluedResult.filename ===
-        (filename.slice(-extension.length).toLocaleLowerCase() === extension
-          ? filename
-          : filename + extension),
+        (fileId.slice(-extension.length).toLocaleLowerCase() === extension
+          ? fileId
+          : fileId + extension),
     );
     if (!evaluatedResult) {
       throw new NotFoundException();

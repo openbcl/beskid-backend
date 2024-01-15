@@ -1,6 +1,9 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { ModelService } from './model.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('AI Models')
+@ApiBearerAuth()
 @Controller('models')
 export class ModelController {
   constructor(private readonly modelService: ModelService) {}

@@ -9,10 +9,7 @@ import { Model } from './model';
 export class ModelService {
   models: Model[] = [
     { name: 'model1', resolutions: [100] },
-    { name: 'model1', resolutions: [100] },
-    { name: 'model3', resolutions: [100] },
-    { name: 'model4', resolutions: [100] },
-    { name: 'model5', resolutions: [100] },
+    { name: 'model2', resolutions: [100] },
   ].map((value, key) => ({ id: key + 1, ...value }));
 
   findModelByName(modelName: string) {

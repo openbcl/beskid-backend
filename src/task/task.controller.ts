@@ -10,7 +10,10 @@ import {
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Manage Tasks')
+@ApiBearerAuth()
 @Controller('tasks')
 export class TaskController {
   constructor(private readonly tasksService: TaskService) {}
@@ -62,26 +65,26 @@ export class TaskController {
     );
   }
 
-  @Get('/:taskId/results/:file')
+  @Get('/:taskId/results/:fileId')
   findTaskResult(
     @Request() req: { sessionId: UUID },
     @Param('taskId') taskId: UUID,
-    @Param('file') file: string,
+    @Param('fileId') fileId: string,
   ) {
-    return this.tasksService.findTaskResult(req.sessionId, taskId, file);
+    return this.tasksService.findTaskResult(req.sessionId, taskId, fileId);
   }
 
-  @Put('/:taskId/results/:file')
+  @Put('/:taskId/results/:fileId')
   evaluateTaskResult(
     @Request() req: { sessionId: UUID },
     @Param('taskId') taskId: UUID,
-    @Param('file') file: string,
+    @Param('fileId') fileId: string,
     @Body() data: { evaluation: number },
   ) {
     return this.tasksService.evaluateTaskResult(
       req.sessionId,
       taskId,
-      file,
+      fileId,
       data.evaluation,
     );
   }
