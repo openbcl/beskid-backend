@@ -20,12 +20,9 @@ export class TaskController {
     return this.tasksService.addTask(req.sessionId, values);
   }
 
-  @Delete(':taskId')
-  deleteTask(
-    @Request() req: { sessionId: UUID },
-    @Param('taskId') taskId: UUID,
-  ) {
-    return this.tasksService.deleteTask(req.sessionId, taskId);
+  @Get()
+  findTasks(@Request() req: { sessionId: UUID }) {
+    return this.tasksService.findTasks(req.sessionId);
   }
 
   @Get(':taskId')
@@ -33,9 +30,21 @@ export class TaskController {
     return this.tasksService.findTask(req.sessionId, taskId, true, true);
   }
 
-  @Get()
-  findTasks(@Request() req: { sessionId: UUID }) {
-    return this.tasksService.findTasks(req.sessionId);
+  @Put(':taskId')
+  editTask(
+    @Request() req: { sessionId: UUID },
+    @Param('taskId') taskId: UUID,
+    @Body() data: { training: boolean },
+  ) {
+    return this.tasksService.editTask(req.sessionId, taskId, data.training);
+  }
+
+  @Delete(':taskId')
+  deleteTask(
+    @Request() req: { sessionId: UUID },
+    @Param('taskId') taskId: UUID,
+  ) {
+    return this.tasksService.deleteTask(req.sessionId, taskId);
   }
 
   @Post('/:taskId/model/:modelId/resolution/:resolution')

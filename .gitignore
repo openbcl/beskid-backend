@@ -4,6 +4,7 @@
 
 # runtime output
 data/*
+training/*
 python/*
 !python/*.py
 !python/sample*

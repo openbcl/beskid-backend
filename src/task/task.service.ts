@@ -44,6 +44,19 @@ export class TaskService {
     return task.toPartial();
   }
 
+  editTask(sessionId: UUID, taskId: UUID, training: boolean) {
+    const task = this.findTask(sessionId, taskId, false);
+    if (![true, false].includes(training)) {
+      throw new BadRequestException();
+    }
+    renameSync(
+      task.directory,
+      join(dataDirectory, sessionId, `${training ? '1' : '0'}_${taskId}`),
+    );
+    task.training = training;
+    return task.toPartial();
+  }
+
   deleteTask(sessionId: UUID, taskId: UUID): Partial<Task> {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     try {
