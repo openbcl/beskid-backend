@@ -11,9 +11,10 @@ import {
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateTaskDto,
+  Task,
   TaskIdParam,
   TaskResultEvaluation,
   TaskTraining,
@@ -29,21 +30,25 @@ export class TaskController {
   constructor(private readonly tasksService: TaskService) {}
 
   @Post()
+  @ApiResponse({ type: Task })
   addTask(@Request() req: { sessionId: UUID }, @Body() task: CreateTaskDto) {
     return this.tasksService.addTask(req.sessionId, task.values);
   }
 
   @Get()
+  @ApiResponse({ type: [Task] })
   findTasks(@Request() req: { sessionId: UUID }) {
     return this.tasksService.findTasks(req.sessionId);
   }
 
   @Get(':taskId')
+  @ApiResponse({ type: Task })
   findTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam) {
     return this.tasksService.findTask(req.sessionId, params.taskId, true, true);
   }
 
   @Put(':taskId')
+  @ApiResponse({ type: Task })
   @ApiQuery({ name: 'training', enum: TaskTraining })
   editTask(
     @Request() req: { sessionId: UUID },
@@ -62,6 +67,7 @@ export class TaskController {
   }
 
   @Post('/:taskId/model/:modelId/resolution/:resolution')
+  @ApiResponse({ type: Task })
   runTask(
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,
@@ -91,6 +97,7 @@ export class TaskController {
 
   @Put('/:taskId/results/:fileId')
   @ApiQuery({ name: 'evaluation', enum: TaskResultEvaluation })
+  @ApiResponse({ type: Task })
   evaluateTaskResult(
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,

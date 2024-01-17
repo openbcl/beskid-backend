@@ -9,10 +9,47 @@ import { dataDirectory, encoding, extension } from '../config';
 import { IsNumber, IsUUID } from 'class-validator';
 import { ApiProperty, PickType } from '@nestjs/swagger';
 
+export enum TaskTraining {
+  DISABLED = 'DISABLED',
+  ENABLED = 'ENABLED',
+}
+
+export enum TaskResultEvaluation {
+  NEUTRAL = 'NEUTRAL',
+  POSITIVE = 'POSITIVE',
+  NEGATIVE = 'NEGATIVE',
+}
+
+export class TaskResult {
+  @ApiProperty()
+  filename: string;
+
+  @ApiProperty({ type: Date })
+  date: Date;
+
+  @ApiProperty({ type: Model })
+  model: Model;
+
+  @ApiProperty({ enum: TaskResultEvaluation })
+  evaluation: TaskResultEvaluation;
+}
+
 export class Task {
   @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
   @ApiProperty({ type: [Number] })
   values: number[];
+
+  @ApiProperty({ enum: TaskTraining })
+  training: TaskTraining;
+
+  @ApiProperty({ format: 'uuid' })
+  id: UUID;
+
+  @ApiProperty({ type: Date })
+  date: Date;
+
+  @ApiProperty({ type: [TaskResult] })
+  results: TaskResult[];
 
   directory: string;
   inputFilename: string;
@@ -20,12 +57,16 @@ export class Task {
   constructor(
     public sessionId: string,
     values: number[],
-    public training = TaskTraining.DISABLED,
-    public id: UUID = randomUUID(),
-    public date = new Date(),
-    public results: TaskResult[] = [],
+    training = TaskTraining.DISABLED,
+    id: UUID = randomUUID(),
+    date = new Date(),
+    results: TaskResult[] = [],
   ) {
     this.values = values;
+    this.training = training;
+    this.id = id;
+    this.date = date;
+    this.results = results;
     this.directory = join(
       dataDirectory,
       this.sessionId,
@@ -90,24 +131,6 @@ export class TaskDto extends PickType(Task, [
 ] as const) {}
 
 export class CreateTaskDto extends PickType(Task, ['values'] as const) {}
-
-export enum TaskTraining {
-  DISABLED = 'DISABLED',
-  ENABLED = 'ENABLED',
-}
-
-export class TaskResult {
-  filename: string;
-  date: Date;
-  model: Model;
-  evaluation: TaskResultEvaluation;
-}
-
-export enum TaskResultEvaluation {
-  NEUTRAL = 'NEUTRAL',
-  POSITIVE = 'POSITIVE',
-  NEGATIVE = 'NEGATIVE',
-}
 
 export class TaskIdParam {
   @IsUUID()

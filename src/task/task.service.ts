@@ -90,7 +90,7 @@ export class TaskService {
     return task.toDto();
   }
 
-  deleteTask(sessionId: UUID, taskId: UUID): Partial<TaskDto> {
+  deleteTask(sessionId: UUID, taskId: UUID) {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     try {
       rmSync(taskDirectory, { recursive: true, force: true });
@@ -98,7 +98,6 @@ export class TaskService {
         `Deleted task "${taskId}" of session "${sessionId}"`,
         'TaskService',
       );
-      return { id: taskId };
     } catch (err) {
       Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
@@ -194,6 +193,7 @@ export class TaskService {
     const model = this.modelService.findModel(modelId);
     const modelResoution = model.resolutions.find((res) => res == resolution);
     if (modelResoution > 0) {
+      // TODO: Implement Queues! https://docs.nestjs.com/techniques/queues
       model.resolutions = [modelResoution];
       Logger.log(`Running task "${taskId}" ...`, 'TaskService');
       return (this.findTask(sessionId, taskId, false) as Task).run(model);
