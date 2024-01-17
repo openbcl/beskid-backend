@@ -66,6 +66,27 @@ export class TaskService {
       } training for task "${task.id}" of session "${sessionId}"`,
       'TaskService',
     );
+    if (training === TaskTraining.DISABLED) {
+      task.results = task.results.map((result) => {
+        if (result.evaluation !== TaskResultEvaluation.NEUTRAL) {
+          try {
+            rmSync(join(trainingDirectory, task.id), {
+              recursive: true,
+              force: true,
+            });
+            Logger.log(
+              `Deleted training data of task "${task.id}"`,
+              'TaskService',
+            );
+          } catch (err) {
+            Logger.error(err, 'TaskService');
+            throw new InternalServerErrorException();
+          }
+          result.evaluation = TaskResultEvaluation.NEUTRAL;
+        }
+        return result;
+      });
+    }
     return task.toDto();
   }
 
