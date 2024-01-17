@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from './model';
 
 @Injectable()
@@ -16,15 +12,11 @@ export class ModelService {
     return this.models.find((model) => model.name === modelName);
   }
 
-  findModel(modelId: any) {
-    const id = Number.parseInt(modelId, 10);
-    if (modelId != id) {
-      throw new BadRequestException();
-    }
-    if (id < 0 || id > this.models.length) {
+  findModel(modelId: number) {
+    if (modelId < 0 || modelId > this.models.length) {
       throw new NotFoundException();
     }
-    return this.models.find((model) => model.id === id);
+    return this.models.find((model) => model.id === modelId);
   }
 
   findModels() {

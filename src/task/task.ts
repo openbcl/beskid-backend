@@ -6,36 +6,30 @@ import { execSync } from 'child_process';
 import { Model } from '../model/model';
 import { Logger } from '@nestjs/common';
 import { dataDirectory, encoding, extension } from '../config';
-
-export interface Result {
-  filename: string;
-  date: Date;
-  model: Model;
-  evaluation: EvaluateOptions;
-}
-
-export enum EvaluateOptions {
-  'UNVALUED',
-  'RIGHT',
-  'WRONG',
-}
+import { IsNumber, IsUUID } from 'class-validator';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export class Task {
+  @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
+  @ApiProperty({ type: [Number] })
+  values: number[];
+
   directory: string;
   inputFilename: string;
 
   constructor(
     public sessionId: string,
-    public values: number[],
-    public training = false,
+    values: number[],
+    public training = TaskTraining.DISABLED,
     public id: UUID = randomUUID(),
     public date = new Date(),
-    public results: Result[] = [],
+    public results: TaskResult[] = [],
   ) {
+    this.values = values;
     this.directory = join(
       dataDirectory,
       this.sessionId,
-      `${this.training ? '1' : '0'}_${this.id}`,
+      `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`,
     );
     this.inputFilename = `input_${this.timestamp(date)}.txt`;
   }
@@ -63,7 +57,9 @@ export class Task {
   run = (model: Model) => {
     const script = join('..', '..', '..', 'python', 'dummy_code.py');
     const date = new Date();
-    const outputFileName = `output_${this.timestamp(date)}_${model.name}_${model.resolutions[0]}`;
+    const outputFileName = `output_${this.timestamp(date)}_${model.name}_${
+      model.resolutions[0]
+    }`;
     const process = `python ${script} ${outputFileName} ${model.name} ${this.inputFilename}`;
     const out = execSync(process, { cwd: this.directory });
     Logger.log(out.toString(encoding), `TASK: ${this.id}`);
@@ -71,16 +67,50 @@ export class Task {
       filename: outputFileName + extension,
       date,
       model,
-      evaluation: EvaluateOptions.UNVALUED,
+      evaluation: TaskResultEvaluation.NEUTRAL,
     });
-    return this.toPartial();
+    return this.toDto();
   };
 
-  toPartial = (): Partial<Task> => ({
+  toDto = (): TaskDto => ({
     id: this.id,
     values: this.values,
     training: this.training,
     date: this.date,
     results: this.results,
   });
+}
+
+export class TaskDto extends PickType(Task, [
+  'id',
+  'values',
+  'training',
+  'date',
+  'results',
+] as const) {}
+
+export class CreateTaskDto extends PickType(Task, ['values'] as const) {}
+
+export enum TaskTraining {
+  DISABLED = 'DISABLED',
+  ENABLED = 'ENABLED',
+}
+
+export class TaskResult {
+  filename: string;
+  date: Date;
+  model: Model;
+  evaluation: TaskResultEvaluation;
+}
+
+export enum TaskResultEvaluation {
+  NEUTRAL = 'NEUTRAL',
+  POSITIVE = 'POSITIVE',
+  NEGATIVE = 'NEGATIVE',
+}
+
+export class TaskIdParam {
+  @IsUUID()
+  @ApiProperty({ format: 'uuid' })
+  taskId: UUID;
 }

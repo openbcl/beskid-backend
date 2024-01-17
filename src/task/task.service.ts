@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { EvaluateOptions, Task } from './task';
+import { Task, TaskDto, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -46,29 +46,30 @@ export class TaskService {
       `Created new task "${task.id}" for session "${sessionId}"`,
       'TaskService',
     );
-    return task.toPartial();
+    return task.toDto();
   }
 
-  editTask(sessionId: UUID, taskId: UUID, training: boolean) {
-    const task = this.findTask(sessionId, taskId, false);
-    if (![true, false].includes(training)) {
-      throw new BadRequestException();
-    }
+  editTask(sessionId: UUID, taskId: UUID, training: TaskTraining) {
+    const task = this.findTask(sessionId, taskId, false) as Task;
     renameSync(
       task.directory,
-      join(dataDirectory, sessionId, `${training ? '1' : '0'}_${taskId}`),
+      join(
+        dataDirectory,
+        sessionId,
+        `${training === TaskTraining.ENABLED ? '1' : '0'}_${taskId}`,
+      ),
     );
     task.training = training;
     Logger.log(
-      `${training ? 'Enabled' : 'Disabled'} training for task "${
-        task.id
-      }" of session "${sessionId}"`,
+      `${
+        training === TaskTraining.ENABLED ? 'Enabled' : 'Disabled'
+      } training for task "${task.id}" of session "${sessionId}"`,
       'TaskService',
     );
-    return task.toPartial();
+    return task.toDto();
   }
 
-  deleteTask(sessionId: UUID, taskId: UUID): Partial<Task> {
+  deleteTask(sessionId: UUID, taskId: UUID): Partial<TaskDto> {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     try {
       rmSync(taskDirectory, { recursive: true, force: true });
@@ -83,12 +84,7 @@ export class TaskService {
     }
   }
 
-  findTask(
-    sessionId: UUID,
-    taskId: UUID,
-    toPartial = true,
-    parseValues = false,
-  ) {
+  findTask(sessionId: UUID, taskId: UUID, toDto = true, parseValues = false) {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
     const { taskDirectory, training } = this.findDirectories(sessionId, taskId);
     const inputFilename = readdirSync(taskDirectory).find((name) =>
@@ -132,21 +128,21 @@ export class TaskService {
             join(
               trainingDirectory,
               taskId,
-              EvaluateOptions[EvaluateOptions.RIGHT],
+              TaskResultEvaluation.POSITIVE,
               filename,
             ),
           )
-            ? EvaluateOptions.RIGHT
+            ? TaskResultEvaluation.POSITIVE
             : existsSync(
                   join(
                     trainingDirectory,
                     taskId,
-                    EvaluateOptions[EvaluateOptions.WRONG],
+                    TaskResultEvaluation.NEGATIVE,
                     filename,
                   ),
                 )
-              ? EvaluateOptions.WRONG
-              : EvaluateOptions.UNVALUED,
+              ? TaskResultEvaluation.NEGATIVE
+              : TaskResultEvaluation.NEUTRAL,
         };
       });
     const task = new Task(
@@ -159,7 +155,7 @@ export class TaskService {
       date,
       results,
     );
-    return toPartial ? task.toPartial() : task;
+    return toDto ? task.toDto() : task;
   }
 
   findTasks(sessionId: UUID) {
@@ -173,13 +169,13 @@ export class TaskService {
     }
   }
 
-  runTask(sessionId: UUID, taskId: UUID, modelId: any, resolution: any) {
+  runTask(sessionId: UUID, taskId: UUID, modelId: number, resolution: number) {
     const model = this.modelService.findModel(modelId);
     const modelResoution = model.resolutions.find((res) => res == resolution);
     if (modelResoution > 0) {
       model.resolutions = [modelResoution];
       Logger.log(`Running task "${taskId}" ...`, 'TaskService');
-      return this.findTask(sessionId, taskId, false).run(model);
+      return (this.findTask(sessionId, taskId, false) as Task).run(model);
     } else {
       throw new BadRequestException();
     }
@@ -216,22 +212,15 @@ export class TaskService {
     sessionId: UUID,
     taskId: UUID,
     fileId: string,
-    evalutation: number,
+    evalutation: TaskResultEvaluation,
   ) {
-    if (
-      !Object.values(EvaluateOptions)
-        .filter((v) => !isNaN(Number(v)))
-        .includes(evalutation)
-    ) {
-      throw new BadRequestException();
-    }
-    const task = this.findTask(sessionId, taskId, false);
-    if (!task.training) {
+    const task = this.findTask(sessionId, taskId, false) as Task;
+    if (task.training === TaskTraining.DISABLED) {
       throw new ForbiddenException();
     }
     const evaluatedResult = task.results.find(
-      (unvaluedResult) =>
-        unvaluedResult.filename ===
+      (result) =>
+        result.filename ===
         (fileId.slice(-extension.length).toLocaleLowerCase() === extension
           ? fileId
           : fileId + extension),
@@ -241,19 +230,16 @@ export class TaskService {
     }
     const trainingTaskDirectory = join(trainingDirectory, task.id);
     try {
-      if (evalutation === EvaluateOptions.UNVALUED) {
-        const cleanup = (evaluation: EvaluateOptions) => {
+      if (evalutation === TaskResultEvaluation.NEUTRAL) {
+        const cleanup = (evaluation: TaskResultEvaluation) => {
           const evaluationPath = join(
             trainingTaskDirectory,
-            EvaluateOptions[evaluation],
+            evaluation,
             evaluatedResult.filename,
           );
           if (existsSync(evaluationPath)) {
             rmSync(evaluationPath, { force: true });
-            const evaluationDirectory = join(
-              trainingTaskDirectory,
-              EvaluateOptions[evaluation],
-            );
+            const evaluationDirectory = join(trainingTaskDirectory, evaluation);
             if (!readdirSync(evaluationDirectory).length) {
               rmSync(evaluationDirectory, { recursive: true, force: true });
             }
@@ -264,7 +250,8 @@ export class TaskService {
           }
           return false;
         };
-        cleanup(EvaluateOptions.RIGHT) || cleanup(EvaluateOptions.WRONG);
+        cleanup(TaskResultEvaluation.POSITIVE) ||
+          cleanup(TaskResultEvaluation.NEGATIVE);
       } else {
         if (!existsSync(trainingTaskDirectory)) {
           mkdirSync(trainingTaskDirectory, { recursive: true });
@@ -275,20 +262,15 @@ export class TaskService {
         }
         const preEvaluationDirectory = join(
           trainingTaskDirectory,
-          EvaluateOptions[
-            evalutation !== EvaluateOptions.RIGHT
-              ? EvaluateOptions.RIGHT
-              : EvaluateOptions.WRONG
-          ],
+          evalutation !== TaskResultEvaluation.POSITIVE
+            ? TaskResultEvaluation.POSITIVE
+            : TaskResultEvaluation.NEGATIVE,
         );
         const wrongEvaluatedPath = join(
           preEvaluationDirectory,
           evaluatedResult.filename,
         );
-        const evaluationDirectory = join(
-          trainingTaskDirectory,
-          EvaluateOptions[evalutation],
-        );
+        const evaluationDirectory = join(trainingTaskDirectory, evalutation);
         if (!existsSync(evaluationDirectory)) {
           mkdirSync(evaluationDirectory, { recursive: true });
         }
@@ -312,17 +294,17 @@ export class TaskService {
       throw new InternalServerErrorException();
     }
     evaluatedResult.evaluation = evalutation;
-    task.results = task.results.map((unvaluedResult) => {
-      if (unvaluedResult.filename !== evaluatedResult.filename) {
-        return unvaluedResult;
+    task.results = task.results.map((result) => {
+      if (result.filename !== evaluatedResult.filename) {
+        return result;
       }
       Logger.log(
-        `Evaluated result "${evaluatedResult.filename}" of task "${task.id}" as "${EvaluateOptions[evalutation]}"`,
+        `Evaluated result "${evaluatedResult.filename}" of task "${task.id}" as "${evalutation}"`,
         'TaskService',
       );
       return evaluatedResult;
     });
-    return task.toPartial();
+    return task.toDto();
   }
 
   private parseInputfile = (filepath: string): number[] => {
@@ -351,8 +333,11 @@ export class TaskService {
     }
     const privateTaskPath = join(sessionDirectory, `0_${taskId}`);
     const trainingTaskPath = join(sessionDirectory, `1_${taskId}`);
-    const training = existsSync(trainingTaskPath);
-    const taskDirectory = training ? trainingTaskPath : privateTaskPath;
+    const training = existsSync(trainingTaskPath)
+      ? TaskTraining.ENABLED
+      : TaskTraining.DISABLED;
+    const taskDirectory =
+      training === TaskTraining.ENABLED ? trainingTaskPath : privateTaskPath;
     if (taskDirectory === privateTaskPath && !existsSync(privateTaskPath)) {
       throw new NotFoundException();
     }

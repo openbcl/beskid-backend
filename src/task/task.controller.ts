@@ -6,11 +6,18 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Request,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  CreateTaskDto,
+  TaskIdParam,
+  TaskResultEvaluation,
+  TaskTraining,
+} from './task';
 
 @ApiTags('Manage Tasks')
 @ApiBearerAuth()
@@ -22,8 +29,8 @@ export class TaskController {
   constructor(private readonly tasksService: TaskService) {}
 
   @Post()
-  addTask(@Request() req: { sessionId: UUID }, @Body() values: number[]) {
-    return this.tasksService.addTask(req.sessionId, values);
+  addTask(@Request() req: { sessionId: UUID }, @Body() task: CreateTaskDto) {
+    return this.tasksService.addTask(req.sessionId, task.values);
   }
 
   @Get()
@@ -32,37 +39,38 @@ export class TaskController {
   }
 
   @Get(':taskId')
-  findTask(@Request() req: { sessionId: UUID }, @Param('taskId') taskId: UUID) {
-    return this.tasksService.findTask(req.sessionId, taskId, true, true);
+  findTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam) {
+    return this.tasksService.findTask(req.sessionId, params.taskId, true, true);
   }
 
   @Put(':taskId')
+  @ApiQuery({ name: 'training', enum: TaskTraining })
   editTask(
     @Request() req: { sessionId: UUID },
-    @Param('taskId') taskId: UUID,
-    @Body() data: { training: boolean },
+    @Param() params: TaskIdParam,
+    @Query('training') training: TaskTraining,
   ) {
-    return this.tasksService.editTask(req.sessionId, taskId, data.training);
+    return this.tasksService.editTask(req.sessionId, params.taskId, training);
   }
 
   @Delete(':taskId')
   deleteTask(
     @Request() req: { sessionId: UUID },
-    @Param('taskId') taskId: UUID,
+    @Param() params: TaskIdParam,
   ) {
-    return this.tasksService.deleteTask(req.sessionId, taskId);
+    return this.tasksService.deleteTask(req.sessionId, params.taskId);
   }
 
   @Post('/:taskId/model/:modelId/resolution/:resolution')
   runTask(
     @Request() req: { sessionId: UUID },
-    @Param('taskId') taskId: UUID,
+    @Param() params: TaskIdParam,
     @Param('modelId') modelId: number,
     @Param('resolution') resolution: number,
   ) {
     return this.tasksService.runTask(
       req.sessionId,
-      taskId,
+      params.taskId,
       modelId,
       resolution,
     );
@@ -71,24 +79,29 @@ export class TaskController {
   @Get('/:taskId/results/:fileId')
   findTaskResult(
     @Request() req: { sessionId: UUID },
-    @Param('taskId') taskId: UUID,
+    @Param() params: TaskIdParam,
     @Param('fileId') fileId: string,
   ) {
-    return this.tasksService.findTaskResult(req.sessionId, taskId, fileId);
+    return this.tasksService.findTaskResult(
+      req.sessionId,
+      params.taskId,
+      fileId,
+    );
   }
 
   @Put('/:taskId/results/:fileId')
+  @ApiQuery({ name: 'evaluation', enum: TaskResultEvaluation })
   evaluateTaskResult(
     @Request() req: { sessionId: UUID },
-    @Param('taskId') taskId: UUID,
+    @Param() params: TaskIdParam,
     @Param('fileId') fileId: string,
-    @Body() data: { evaluation: number },
+    @Query('evaluation') evaluation: TaskResultEvaluation,
   ) {
     return this.tasksService.evaluateTaskResult(
       req.sessionId,
-      taskId,
+      params.taskId,
       fileId,
-      data.evaluation,
+      evaluation,
     );
   }
 }

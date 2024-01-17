@@ -12,7 +12,7 @@ export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 
   @Get(':modelId')
-  findModel(@Param('modelId') modelId: string) {
+  findModel(@Param('modelId') modelId: number) {
     return this.modelService.findModel(modelId);
   }
 
