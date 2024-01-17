@@ -4,7 +4,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('AI Models')
 @ApiBearerAuth()
-@Controller('models')
+@Controller({
+  path: 'models',
+  version: '1',
+})
 export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 

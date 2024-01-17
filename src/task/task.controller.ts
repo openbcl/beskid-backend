@@ -14,7 +14,10 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Manage Tasks')
 @ApiBearerAuth()
-@Controller('tasks')
+@Controller({
+  path: 'tasks',
+  version: '1',
+})
 export class TaskController {
   constructor(private readonly tasksService: TaskService) {}
 

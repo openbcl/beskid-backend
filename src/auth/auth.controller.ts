@@ -5,7 +5,10 @@ import { UUID } from 'crypto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Authentication')
-@Controller('auth')
+@Controller({
+  path: 'auth',
+  version: '1',
+})
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
