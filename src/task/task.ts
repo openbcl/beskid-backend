@@ -24,6 +24,12 @@ export class TaskResult {
   @ApiProperty()
   filename: string;
 
+  @ApiProperty()
+  pathFile: string;
+
+  @ApiProperty()
+  pathData: string;
+
   @ApiProperty({ type: Date })
   date: Date;
 
@@ -106,6 +112,8 @@ export class Task {
     Logger.log(out.toString(encoding), `TASK: ${this.id}`);
     this.results.push({
       filename: outputFileName + extension,
+      pathFile: `/v1/tasks/${this.id}/results/${outputFileName + extension}`,
+      pathData: `/v1/tasks/${this.id}/results/${outputFileName}`,
       date,
       model,
       evaluation: TaskResultEvaluation.NEUTRAL,

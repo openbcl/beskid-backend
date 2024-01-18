@@ -138,6 +138,11 @@ export class TaskService {
         model.resolutions = [modelResoution];
         return {
           filename,
+          pathFile: `/v1/tasks/${taskId}/results/${filename}`,
+          pathData: `/v1/tasks/${taskId}/results/${filename.slice(
+            0,
+            -extension.length,
+          )}`,
           date: new Date(
             Date.parse(
               `${rm[1]}-${rm[2]}-${rm[3]}T${rm[4]}:${rm[5]}:${rm[6]}.000Z`,
