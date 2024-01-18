@@ -79,6 +79,8 @@ export class Task {
   directory: string;
   inputFilename: string;
 
+  private script: string = process.env['script'];
+
   constructor(
     public sessionId: string,
     values: number[],
@@ -121,7 +123,7 @@ export class Task {
   };
 
   run = (model: Model) => {
-    const script = join('..', '..', '..', 'python', 'dummy_code.py');
+    const script = join('..', '..', '..', 'python', this.script);
     const date = new Date();
     const outputFileName = `output_${this.timestamp(date)}_${model.name}_${
       model.resolutions[0]

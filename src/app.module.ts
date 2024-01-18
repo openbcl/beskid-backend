@@ -14,7 +14,9 @@ import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(),
+    ConfigModule.forRoot({
+      cache: true,
+    }),
     JwtModule.register({
       global: true,
       secret: process.env['tokenSecret'],
