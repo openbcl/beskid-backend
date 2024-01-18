@@ -25,10 +25,10 @@ export class TaskResult {
   filename: string;
 
   @ApiProperty({ description: 'URI of file' })
-  pathFile: string;
+  uriFile: string;
 
   @ApiProperty({ description: 'URI of file content' })
-  pathData: string;
+  uriData: string;
 
   @ApiProperty({ type: Date, description: 'Date of calculation' })
   date: Date;
@@ -130,8 +130,8 @@ export class Task {
     Logger.log(out.toString(encoding), `TASK: ${this.id}`);
     this.results.push({
       filename: outputFileName + extension,
-      pathFile: `/v1/tasks/${this.id}/results/${outputFileName + extension}`,
-      pathData: `/v1/tasks/${this.id}/results/${outputFileName}`,
+      uriFile: `/v1/tasks/${this.id}/results/${outputFileName + extension}`,
+      uriData: `/v1/tasks/${this.id}/results/${outputFileName}`,
       date,
       model,
       evaluation: TaskResultEvaluation.NEUTRAL,

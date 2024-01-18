@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { Task, TaskResultEvaluation, TaskTraining } from './task';
+import { Task, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -138,8 +138,8 @@ export class TaskService {
         model.resolutions = [modelResoution];
         return {
           filename,
-          pathFile: `/v1/tasks/${taskId}/results/${filename}`,
-          pathData: `/v1/tasks/${taskId}/results/${filename.slice(
+          uriFile: `/v1/tasks/${taskId}/results/${filename}`,
+          uriData: `/v1/tasks/${taskId}/results/${filename.slice(
             0,
             -extension.length,
           )}`,
@@ -168,7 +168,7 @@ export class TaskService {
                 )
               ? TaskResultEvaluation.NEGATIVE
               : TaskResultEvaluation.NEUTRAL,
-        };
+        } as TaskResult;
       });
     const task = new Task(
       sessionId,
