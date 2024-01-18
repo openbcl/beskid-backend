@@ -30,25 +30,42 @@ export class TaskController {
   constructor(private readonly tasksService: TaskService) {}
 
   @Post()
-  @ApiResponse({ type: Task })
+  @ApiResponse({
+    type: Task,
+    status: 201,
+    description: 'Upload input values for new task.',
+  })
   addTask(@Request() req: { sessionId: UUID }, @Body() task: CreateTaskDto) {
     return this.tasksService.addTask(req.sessionId, task.values);
   }
 
   @Get()
-  @ApiResponse({ type: [Task] })
+  @ApiResponse({
+    type: [Task],
+    status: 200,
+    description: 'Request all available tasks (input values excluded).',
+  })
   findTasks(@Request() req: { sessionId: UUID }) {
     return this.tasksService.findTasks(req.sessionId);
   }
 
   @Get(':taskId')
-  @ApiResponse({ type: Task })
+  @ApiResponse({
+    type: Task,
+    status: 200,
+    description: 'Request a selected task (input values included).',
+  })
   findTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam) {
     return this.tasksService.findTask(req.sessionId, params.taskId, true, true);
   }
 
   @Put(':taskId')
-  @ApiResponse({ type: Task })
+  @ApiResponse({
+    type: Task,
+    status: 200,
+    description:
+      'Enable or disbale training for a selected task. If the training was previously enabled, any analysed training data will be deleted.',
+  })
   @ApiQuery({ name: 'training', enum: TaskTraining })
   editTask(
     @Request() req: { sessionId: UUID },
@@ -59,6 +76,11 @@ export class TaskController {
   }
 
   @Delete(':taskId')
+  @ApiResponse({
+    status: 200,
+    description:
+      'Delete a selected task and all usage data. If the training was previously enabled, the analysed training data is retained.',
+  })
   deleteTask(
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,
@@ -67,7 +89,12 @@ export class TaskController {
   }
 
   @Post('/:taskId/model/:modelId/resolution/:resolution')
-  @ApiResponse({ type: Task })
+  @ApiResponse({
+    type: Task,
+    status: 201,
+    description:
+      'Start a selected task by selecting an AI model and resolution.',
+  })
   runTask(
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,
@@ -83,6 +110,11 @@ export class TaskController {
   }
 
   @Get('/:taskId/results/:fileId')
+  @ApiResponse({
+    status: 200,
+    description:
+      'Retrieve the calculation results of a task. If you specify the filename including its extension as fileId, the results file is provided as a download. If you only specify the filename without its extension, the content of the file is returned in JSON format.',
+  })
   findTaskResult(
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,
@@ -97,7 +129,12 @@ export class TaskController {
 
   @Put('/:taskId/results/:fileId')
   @ApiQuery({ name: 'evaluation', enum: TaskResultEvaluation })
-  @ApiResponse({ type: Task })
+  @ApiResponse({
+    type: Task,
+    status: 200,
+    description:
+      'Evaluate a result of a task where training is enabled. Both the file name with and without file extension can be specified as fileID. If you select "POSITIVE", you are telling the AI system that everything was done correctly. If you select "NEGATIVE", you are telling the AI system that something went wrong. If you select "NEUTRAL", the result will no longer be passed on to the AI system.',
+  })
   evaluateTaskResult(
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,

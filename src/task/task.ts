@@ -21,40 +21,58 @@ export enum TaskResultEvaluation {
 }
 
 export class TaskResult {
-  @ApiProperty()
+  @ApiProperty({ description: 'Filename with .json extension' })
   filename: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'URI of file' })
   pathFile: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'URI of file content' })
   pathData: string;
 
-  @ApiProperty({ type: Date })
+  @ApiProperty({ type: Date, description: 'Date of calculation' })
   date: Date;
 
-  @ApiProperty({ type: Model })
+  @ApiProperty({ type: Model, description: 'Model used for the calculation' })
   model: Model;
 
-  @ApiProperty({ enum: TaskResultEvaluation })
+  @ApiProperty({
+    enum: TaskResultEvaluation,
+    description: 'Evaluation of the quality of the results',
+  })
   evaluation: TaskResultEvaluation;
 }
 
 export class Task {
   @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
-  @ApiProperty({ type: [Number] })
+  @ApiProperty({
+    type: [Number],
+    description: 'Array of (100) input values',
+    minLength: 100,
+    maxLength: 100,
+  })
   values: number[];
 
-  @ApiProperty({ enum: TaskTraining })
+  @ApiProperty({
+    enum: TaskTraining,
+    description: 'The marker indicates whether training is enabled or not.',
+  })
   training: TaskTraining;
 
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({
+    format: 'uuid',
+    description: 'UUID example: "49f1852d-3f2b-4b89-b392-4b1cfa3e4f5c"',
+  })
   id: UUID;
 
-  @ApiProperty({ type: Date })
+  @ApiProperty({ type: Date, description: 'Date of upload' })
   date: Date;
 
-  @ApiProperty({ type: [TaskResult] })
+  @ApiProperty({
+    type: [TaskResult],
+    description:
+      'Array with the results of calculations based on various AI models',
+  })
   results: TaskResult[];
 
   directory: string;
@@ -142,6 +160,9 @@ export class CreateTaskDto extends PickType(Task, ['values'] as const) {}
 
 export class TaskIdParam {
   @IsUUID()
-  @ApiProperty({ format: 'uuid' })
+  @ApiProperty({
+    format: 'uuid',
+    description: 'UUID example: "49f1852d-3f2b-4b89-b392-4b1cfa3e4f5c"',
+  })
   taskId: UUID;
 }

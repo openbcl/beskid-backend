@@ -13,13 +13,21 @@ export class ModelController {
   constructor(private readonly modelService: ModelService) {}
 
   @Get(':modelId')
-  @ApiResponse({ type: Model })
+  @ApiResponse({
+    type: Model,
+    status: 200,
+    description: 'Request a selected AI model.',
+  })
   findModel(@Param('modelId') modelId: number) {
     return this.modelService.findModel(modelId);
   }
 
   @Get()
-  @ApiResponse({ type: [Model] })
+  @ApiResponse({
+    type: [Model],
+    status: 200,
+    description: 'Request all available AI models.',
+  })
   findModels() {
     return this.modelService.findModels();
   }

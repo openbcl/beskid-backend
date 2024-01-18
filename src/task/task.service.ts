@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { Task, TaskDto, TaskResultEvaluation, TaskTraining } from './task';
+import { Task, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
