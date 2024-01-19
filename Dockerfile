@@ -1,3 +1,5 @@
+LABEL org.opencontainers.image.source https://github.com/openbcl/beskid-backend
+
 FROM node:18-alpine AS build
 WORKDIR /usr/src/app
 COPY --chown=node:node package*.json ./
