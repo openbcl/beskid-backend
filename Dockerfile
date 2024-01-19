@@ -1,5 +1,3 @@
-LABEL org.opencontainers.image.source https://github.com/openbcl/beskid-backend
-
 FROM node:18-alpine AS build
 WORKDIR /usr/src/app
 COPY --chown=node:node package*.json ./
@@ -14,6 +12,7 @@ COPY --from=build /usr/src/app/node_modules /app/node_modules
 COPY --from=build /usr/src/app/dist /app/dist
 COPY --from=build /usr/src/app/python /app/python
 ENV PATH="/opt/venv/beskid/bin:$PATH"
+ENV scriptDir="/app/python"
 RUN python3 -m venv /opt/venv/beskid && pip install numpy
 USER pn
 WORKDIR /home/pn

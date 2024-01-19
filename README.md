@@ -30,7 +30,7 @@ There are four environment variables.
 1. `tokenSecret` (default: *random string value on each run*): Contains a secret character string that is required for the generation of session tokens.
 2. `tokenExpirationTime` (default: *7d*): Defines the time after which sessions become invalid.
 3. `scriptFile` (default: *test.py*): Name of the Python file that accesses the AI system.
-4. `scriptDir` (*Only required for productive environments (`npm run start:prod`) or for docker.*)
+4. `scriptDir` (optional)
 The environment variables can be stored in an .env-file. Just copy ".env.template" and name it ".env".
 
 ## Running the app

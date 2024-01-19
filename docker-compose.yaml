@@ -8,7 +8,7 @@ services:
     ports:
       - 3000:3000
     environment:
-      - scriptDir=/app/python
+      - scriptDir=
       - scriptFile=
       - tokenExpirationTime=
       - tokenSecret=
