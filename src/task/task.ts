@@ -80,7 +80,10 @@ export class Task {
   directory: string;
   inputFilename: string;
 
-  private script: string = process.env['script'];
+  private script = join(
+    process.env['scriptDir'] || join('..', '..', '..', 'python'),
+    process.env['scriptFile'] || 'test.py',
+  );
 
   constructor(
     public sessionId: string,
@@ -124,12 +127,11 @@ export class Task {
   };
 
   run = (model: Model) => {
-    const script = join('..', '..', '..', 'python', this.script);
     const date = new Date();
     const outputFileName = `output_${this.timestamp(date)}_${model.name}_${
       model.resolutions[0]
     }`;
-    const process = `python ${script} ${outputFileName} ${model.name} ${this.inputFilename}`;
+    const process = `python ${this.script} ${outputFileName} ${model.name} ${this.inputFilename}`;
     const out = execSync(process, { cwd: this.directory });
     Logger.log(out.toString(encoding), `TASK: ${this.id}`);
     this.results.push({

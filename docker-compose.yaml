@@ -1,0 +1,14 @@
+version: '3'
+services:
+  beskid-api:
+    build: .
+    volumes:
+      - ./data/:/home/pn/data/
+      - ./training/:/home/pn/training/
+    ports:
+      - 3000:3000
+    environment:
+      - scriptDir=/app/python
+      - scriptFile=
+      - tokenExpirationTime=
+      - tokenSecret=

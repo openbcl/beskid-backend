@@ -11,6 +11,7 @@ import { AuthService } from './auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { randomBytes } from 'crypto';
 
 @Module({
   imports: [
@@ -19,8 +20,8 @@ import { APP_GUARD } from '@nestjs/core';
     }),
     JwtModule.register({
       global: true,
-      secret: process.env['tokenSecret'],
-      signOptions: { expiresIn: process.env['tokenExpirationTime'] },
+      secret: process.env['tokenSecret'] || randomBytes(256).toString('base64'),
+      signOptions: { expiresIn: process.env['tokenExpirationTime'] || '7d' },
     }),
   ],
   controllers: [AppController, ModelController, TaskController, AuthController],
