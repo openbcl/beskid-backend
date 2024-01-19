@@ -26,7 +26,8 @@ async function bootstrap() {
       </p>
       <img src="https://www.beskid-projekt.de/@@project-logo/Logo_text_500px.png" alt="BESKID Logo"/><br>
       <br>
-      <b>BEmessungsbrandsimulationen in Schienenfahrzeugen mittels KI-basierter Daten</b>`,
+      <b>BE</b>messungsbrandsimulationen in <b>S</b>chienenfahrzeugen mittels <b>KI</b>-basierter <b>D</b>aten
+      <p>Design fire simulation in railway vehicles using AI-based data</p>`,
     )
     .setVersion('DEV 1.0.0')
     .addBearerAuth()
