@@ -1,36 +1,37 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+> [!CAUTION]
+> *At the moment this API is only intended for test purposes. Results of calculated tasks will only provide random data!*
+> *This API will be available for productive use as soon as the <a href="https://www.beskid-projekt.de/en/projekt/modellierung">modeling project phase</a> has been successfully completed.*
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+<img src="https://www.beskid-projekt.de/@@project-logo/Logo_text_500px.png" width="35%" alt="BESKID Logo"/><br>
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+**BE**messungsbrandsimulationen in **S**chienenfahrzeugen mittels **KI**-basierter **D**aten
 
-## Description
+Design fire simulation in railway vehicles using AI-based data
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+# BESKID-API
+The goal of the [BESKID](https://www.beskid-projekt.de/en) project, funded by the Federal Ministry of Education and Research (BMBF), is to develop and experimentally validate AI-based methods for calculating design fires. The project started in 2022.
+
+Previous approaches to detailed modeling of fire spread in rail vehicles have required a large number of experiments, extensive optimization, and extensive variant calculations. In this project, two complementary AI approaches, KIM (Material AI System) and KIB (Fire AI System), are being researched and implemented. KIM aims to completely reduce the optimization calculations required for determining material parameters, allowing for the determination of necessary material parameters solely from data obtained from a few tests, such as the Cone Calorimeter. This test is already used for the fire protection assessment of all relevant components of rail vehicles, as required by the European standard (EN 45545-2), so the proposed AI approach (KIM) will eliminate the need for additional effort in design fire simulations in the future. KIB aims to significantly shorten the high computational cost for variation calculations of the entire vehicle and focuses on fast calculation of fire spread variations. The goal is to replace the cost-intensive traditional models used for variant calculations of design fires with the KIB AI system.
+
+This API is intended to make the AI system accessible to the public.
+
+## Dependencies
+- Node.js
+- Python 3
 
 ## Installation
 
 ```bash
 $ npm install
 ```
+
+## Configuration
+There are four environment variables.
+1. `tokenSecret` (default: *random string value on each run*): Contains a secret character string that is required for the generation of session tokens.
+2. `tokenExpirationTime` (default: *7d*): Defines the time after which sessions become invalid.
+3. `scriptFile` (default: *test.py*): Name of the Python file that accesses the AI system.
+4. `scriptDir` (*Only required for productive environments (`npm run start:prod`) or for docker.*)
+The environment variables can be stored in an .env-file. Just copy ".env.template" and name it ".env".
 
 ## Running the app
 
@@ -43,7 +44,12 @@ $ npm run start:dev
 
 # production mode
 $ npm run start:prod
+
+# docker
+$ docker-compose up
 ```
+
+Open your browser and visit https://localhost:3000
 
 ## Test
 
@@ -57,17 +63,3 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
