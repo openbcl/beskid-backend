@@ -15,7 +15,19 @@ Previous approaches to detailed modeling of fire spread in rail vehicles have re
 
 This API is intended to make the AI system accessible to the public.
 
-## Dependencies
+## How to run the docker image
+```bash
+# Run docker, open your browser and visit https://localhost:3000
+docker run -it -p 3000:3000 openbcl/beskid-api
+```
+
+## How to build this app
+```bash
+# Clone this repository 
+git clone https://github.com/openbcl/beskid-backend.git
+```
+
+Make sure that the following dependencies are installed
 - Node.js
 - Python 3
 
@@ -31,6 +43,7 @@ There are four environment variables.
 2. `tokenExpirationTime` (default: *7d*): Defines the time after which sessions become invalid.
 3. `scriptFile` (default: *test.py*): Name of the Python file that accesses the AI system.
 4. `scriptDir` (optional)
+
 The environment variables can be stored in an .env-file. Just copy ".env.template" and name it ".env".
 
 ## Running the app
