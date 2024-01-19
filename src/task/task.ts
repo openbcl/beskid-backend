@@ -6,7 +6,7 @@ import { execSync } from 'child_process';
 import { Model } from '../model/model';
 import { Logger } from '@nestjs/common';
 import { dataDirectory, encoding, extension } from '../config';
-import { IsNumber, IsUUID, Length } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsNumber, IsUUID } from 'class-validator';
 import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export enum TaskTraining {
@@ -45,7 +45,8 @@ export class TaskResult {
 
 export class Task {
   @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
-  @Length(100, 100)
+  @ArrayMinSize(100)
+  @ArrayMaxSize(100)
   @ApiProperty({
     type: [Number],
     description: 'Array of (100) input values',
