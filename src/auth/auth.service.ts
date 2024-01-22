@@ -4,26 +4,27 @@ import { JwtService } from '@nestjs/jwt';
 import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { dataDirectory, encoding, expirationFile } from '../config';
+import { Auth } from './auth';
 
 @Injectable()
 export class AuthService {
   constructor(private jwtService: JwtService) {}
 
   newSession() {
-    const { session, sessionId } = this.provideSession();
+    const { token, sessionId } = this.provideSession();
     Logger.log(`Init new session "${sessionId}"`, 'AuthService');
-    return session;
+    return new Auth(token);
   }
 
   renewSession(sessionId: UUID) {
-    const { session } = this.provideSession(sessionId);
+    const { token } = this.provideSession(sessionId);
     Logger.log(`Renew session "${sessionId}"`, 'AuthService');
-    return session;
+    return new Auth(token);
   }
 
   private provideSession(sessionId: UUID = randomUUID()) {
-    const session = this.jwtService.sign({ sessionId });
-    const decoded = this.jwtService.decode(session);
+    const token = this.jwtService.sign({ sessionId });
+    const decoded = this.jwtService.decode(token);
     const sessionDirectory = join(dataDirectory, sessionId);
     if (!existsSync(sessionDirectory)) {
       mkdirSync(sessionDirectory, { recursive: true });
@@ -33,6 +34,6 @@ export class AuthService {
       `${decoded.exp * 1000}`,
       encoding,
     );
-    return { session, sessionId };
+    return { token, sessionId };
   }
 }
