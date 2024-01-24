@@ -1,4 +1,4 @@
-import { Controller, Post, Put, Request } from '@nestjs/common';
+import { Controller, Post, Put, Delete, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from './auth.guard';
 import { UUID } from 'crypto';
@@ -33,5 +33,15 @@ export class AuthController {
   @Put()
   renewSession(@Request() req: { sessionId: UUID }) {
     return this.authService.renewSession(req.sessionId);
+  }
+
+  @ApiBearerAuth()
+  @ApiResponse({
+    description: `Deletes all task data associated with the session. Analysed training data is retained.`,
+    status: 200,
+  })
+  @Delete()
+  deleteSession(@Request() req: { sessionId: UUID }) {
+    return this.authService.deleteSession(req.sessionId);
   }
 }

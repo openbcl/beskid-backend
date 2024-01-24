@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { UUID, randomUUID } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { join } from 'path';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'fs';
 import { dataDirectory, encoding, expirationFile } from '../config';
 import { Auth } from './auth';
 
@@ -20,6 +20,13 @@ export class AuthService {
     const { token } = this.provideSession(sessionId);
     Logger.log(`Renew session "${sessionId}"`, 'AuthService');
     return new Auth(token);
+  }
+
+  deleteSession(sessionId: UUID) {
+    const sessionDirectory = join(dataDirectory, sessionId);
+    if (existsSync(sessionDirectory)) {
+      rmSync(sessionDirectory, { recursive: true, force: true });
+    }
   }
 
   private provideSession(sessionId: UUID = randomUUID()) {
