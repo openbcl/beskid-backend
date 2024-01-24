@@ -23,6 +23,7 @@ export class AuthService {
   }
 
   deleteSession(sessionId: UUID) {
+    Logger.log(`Delete session "${sessionId}"`, 'AuthService');
     const sessionDirectory = join(dataDirectory, sessionId);
     if (existsSync(sessionDirectory)) {
       rmSync(sessionDirectory, { recursive: true, force: true });
