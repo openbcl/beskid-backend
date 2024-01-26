@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { Task, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTaskDto, Task, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -39,8 +39,8 @@ export class TaskService {
     private readonly modelService: ModelService,
   ) {}
 
-  addTask(sessionId: UUID, values: any) {
-    const task = new Task(sessionId, values);
+  addTask(sessionId: UUID, createTask: CreateTaskDto) {
+    const task = new Task(sessionId, createTask.values, createTask.training);
     task.saveInputfile();
     Logger.log(
       `Created new task "${task.id}" for session "${sessionId}"`,

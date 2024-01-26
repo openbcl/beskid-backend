@@ -35,8 +35,8 @@ export class TaskController {
     status: 201,
     description: 'Upload input values for new task.',
   })
-  addTask(@Request() req: { sessionId: UUID }, @Body() task: CreateTaskDto) {
-    return this.tasksService.addTask(req.sessionId, task.values);
+  addTask(@Request() req: { sessionId: UUID }, @Body() createTask: CreateTaskDto) {
+    return this.tasksService.addTask(req.sessionId, createTask);
   }
 
   @Get()

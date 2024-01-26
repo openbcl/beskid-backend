@@ -162,7 +162,10 @@ export class TaskDto extends PickType(Task, [
   'results',
 ] as const) {}
 
-export class CreateTaskDto extends PickType(Task, ['values'] as const) {}
+export class CreateTaskDto extends PickType(Task, [
+  'values',
+  'training',
+] as const) {}
 
 export class TaskIdParam {
   @IsUUID()
