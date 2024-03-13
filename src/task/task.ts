@@ -126,12 +126,15 @@ export class Task {
     );
   };
 
-  run = (model: Model) => {
+  run = async (model: Model) => {
     const date = new Date();
     const outputFileName = `output_${this.timestamp(date)}_${model.name}_${
       model.resolutions[0]
     }`;
     const process = `python ${this.script} ${outputFileName} ${model.name} ${this.inputFilename}`;
+    if (this.script.endsWith('test.py')) {
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+    }
     const out = execSync(process, { cwd: this.directory });
     Logger.log(out.toString(encoding), `TASK: ${this.id}`);
     this.results.push({
