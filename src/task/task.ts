@@ -20,6 +20,11 @@ export enum TaskResultEvaluation {
   NEGATIVE = 'NEGATIVE',
 }
 
+export enum KeepTrainingData {
+  TRUE = 'TRUE',
+  FALSE = 'FALSE',
+}
+
 export class TaskResult {
   @ApiProperty({ description: 'Filename with .json extension' })
   filename: string;

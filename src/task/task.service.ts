@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { CreateTaskDto, Task, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTaskDto, Task, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -234,6 +234,54 @@ export class TaskService {
     }
   }
 
+  deleteTaskResult(
+    sessionId: UUID,
+    taskId: UUID,
+    fileId: string,
+    keepTrainingDataData: boolean,
+  ): TaskDto {
+    const task = this.findTask(sessionId, taskId, false, false) as Task;
+    const filename = fileId.endsWith(extension) ? fileId : fileId + extension;
+    const filepath = join(task.directory, filename);
+    const result = task.results.find((result) => result.filename === filename);
+    if (!result || !existsSync(filepath)) {
+      throw new NotFoundException();
+    }
+    rmSync(filepath, { force: true });
+    if (
+      !keepTrainingDataData &&
+      task.training === TaskTraining.ENABLED &&
+      result.evaluation !== TaskResultEvaluation.NEUTRAL
+    ) {
+      const trainingTaskDirectory = join(trainingDirectory, task.id);
+      this.cleanupEvaluation(trainingTaskDirectory, result.evaluation, result);
+    }
+    return {
+      ...task.toDto(),
+      results: task.results.filter((r) => r.filename !== result.filename),
+    };
+  }
+
+  cleanupEvaluation = (
+    trainingTaskDirectory: string,
+    evaluation: TaskResultEvaluation,
+    evaluatedResult: TaskResult,
+  ) => {
+    const evaluationDirectory = join(trainingTaskDirectory, evaluation);
+    const evaluationPath = join(evaluationDirectory, evaluatedResult.filename);
+    if (existsSync(evaluationPath)) {
+      rmSync(evaluationPath, { force: true });
+      if (!readdirSync(evaluationDirectory).length) {
+        rmSync(evaluationDirectory, { recursive: true, force: true });
+      }
+      if (readdirSync(trainingTaskDirectory).length === 1) {
+        rmSync(trainingTaskDirectory, { recursive: true, force: true });
+      }
+      return true;
+    }
+    return false;
+  };
+
   evaluateTaskResult(
     sessionId: UUID,
     taskId: UUID,
@@ -257,27 +305,16 @@ export class TaskService {
     const trainingTaskDirectory = join(trainingDirectory, task.id);
     try {
       if (evalutation === TaskResultEvaluation.NEUTRAL) {
-        const cleanup = (evaluation: TaskResultEvaluation) => {
-          const evaluationPath = join(
+        this.cleanupEvaluation(
+          trainingTaskDirectory,
+          TaskResultEvaluation.POSITIVE,
+          evaluatedResult,
+        ) ||
+          this.cleanupEvaluation(
             trainingTaskDirectory,
-            evaluation,
-            evaluatedResult.filename,
+            TaskResultEvaluation.NEGATIVE,
+            evaluatedResult,
           );
-          if (existsSync(evaluationPath)) {
-            rmSync(evaluationPath, { force: true });
-            const evaluationDirectory = join(trainingTaskDirectory, evaluation);
-            if (!readdirSync(evaluationDirectory).length) {
-              rmSync(evaluationDirectory, { recursive: true, force: true });
-            }
-            if (readdirSync(trainingTaskDirectory).length === 1) {
-              rmSync(trainingTaskDirectory, { recursive: true, force: true });
-            }
-            return true;
-          }
-          return false;
-        };
-        cleanup(TaskResultEvaluation.POSITIVE) ||
-          cleanup(TaskResultEvaluation.NEGATIVE);
       } else {
         if (!existsSync(trainingTaskDirectory)) {
           mkdirSync(trainingTaskDirectory, { recursive: true });

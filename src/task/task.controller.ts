@@ -14,6 +14,7 @@ import { UUID } from 'crypto';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreateTaskDto,
+  KeepTrainingData,
   Task,
   TaskIdParam,
   TaskResultEvaluation,
@@ -35,7 +36,10 @@ export class TaskController {
     status: 201,
     description: 'Upload input values for new task.',
   })
-  addTask(@Request() req: { sessionId: UUID }, @Body() createTask: CreateTaskDto) {
+  addTask(
+    @Request() req: { sessionId: UUID },
+    @Body() createTask: CreateTaskDto,
+  ) {
     return this.tasksService.addTask(req.sessionId, createTask);
   }
 
@@ -113,7 +117,7 @@ export class TaskController {
   @ApiResponse({
     status: 200,
     description:
-      'Retrieve the calculation results of a task. If you specify the filename including its extension as fileId, the results file is provided as a download. If you only specify the filename without its extension, the content of the file is returned in JSON format.',
+      'Retrieve calculation results of a task. If you specify the filename including its extension as fileId, the results file is provided as a download. If you only specify the filename without its extension, the content of the file is returned in JSON format.',
   })
   findTaskResult(
     @Request() req: { sessionId: UUID },
@@ -146,6 +150,27 @@ export class TaskController {
       params.taskId,
       fileId,
       evaluation,
+    );
+  }
+
+  @Delete('/:taskId/results/:fileId')
+  @ApiQuery({ name: 'keepTrainingData', enum: KeepTrainingData })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Deletes calculation result of a task. Both the file name with and without file extension can be specified as fileID. With the "keepTrainingData" setting, you can decide whether the corresponding evaluated training data should also be deleted.',
+  })
+  deleteTaskResult(
+    @Request() req: { sessionId: UUID },
+    @Param() params: TaskIdParam,
+    @Param('fileId') fileId: string,
+    @Query('keepTrainingData') keepTrainingData: KeepTrainingData,
+  ) {
+    return this.tasksService.deleteTaskResult(
+      req.sessionId,
+      params.taskId,
+      fileId,
+      keepTrainingData === KeepTrainingData.TRUE,
     );
   }
 }
