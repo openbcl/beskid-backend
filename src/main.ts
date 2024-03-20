@@ -20,9 +20,10 @@ async function bootstrap() {
       <i>This API will be available for productive use as soon as the <a href="https://www.beskid-projekt.de/en/projekt/modellierung">modeling project phase</a> has been successfully completed.</i>
       <p align="right">
         <a href="https://www.beskid-projekt.de/en">Project page</a>,
-        <a href="https://github.com/openbcl/beskid-backend">GitHub</a>,
-        <a href="https://www.beskid-projekt.de/en/impressum-und-haftungsausschluss">Legal Notice</a>,
-        <a href="https://www.beskid-projekt.de/en/kontakt">Contact</a>
+        <a href="https://github.com/openbcl/beskid-backend">GitHub (Backend)</a>,
+        <a href="https://github.com/openbcl/beskid-frontend">GitHub (Frontend)</a>,
+        <a href="/legal-notice">Legal Notice</a>,
+        <a href="/data-protection">Data Protection</a>
       </p>
       <img src="https://www.beskid-projekt.de/@@project-logo/Logo_text_500px.png" alt="BESKID Logo"/><br>
       <br>
