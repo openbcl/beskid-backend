@@ -10,20 +10,15 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('BESKID API')
-    .setContact(
-      'Robert Weiße | Brandschutz Consult Ingenieurgesellschaft mbH Leipzig',
-      'https://www.bcl-leipzig.de',
-      'it@bcl-leipzig.de',
-    )
+    .setContact('BESKID Project page', 'https://www.beskid-projekt.de/en', null)
     .setDescription(
       `<i>At the moment this API is only intended for test purposes. Results of calculated tasks will only provide random data!</i><br>
       <i>This API will be available for productive use as soon as the <a href="https://www.beskid-projekt.de/en/projekt/modellierung">modeling project phase</a> has been successfully completed.</i>
       <p align="right">
-        <a href="https://www.beskid-projekt.de/en">Project page</a>,
-        <a href="https://github.com/openbcl/beskid-backend">GitHub (Backend)</a>,
-        <a href="https://github.com/openbcl/beskid-frontend">GitHub (Frontend)</a>,
-        <a href="/legal-notice">Legal Notice</a>,
-        <a href="/data-protection">Data Protection</a>
+      <a href="/legal-notice">Legal Notice</a>,
+      <a href="/data-protection">Data Protection</a>,
+      <a href="/contact">Contact</a>,
+      <a href="https://github.com/openbcl/beskid-backend">GitHub</a>
       </p>
       <img src="https://www.beskid-projekt.de/@@project-logo/Logo_text_500px.png" alt="BESKID Logo"/><br>
       <br>

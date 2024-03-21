@@ -43,7 +43,7 @@ export class AppController {
         However, these can no longer be accessed by the user after the session has expired,
         as previous session data cannot be linked to the new generated session.
       </p>
-    `
+    `;
   }
 
   @Get('legal-notice')
@@ -53,10 +53,11 @@ export class AppController {
       The BESKID project is funded by the Federal Ministry of Education and Research (BMBF) within the program "Research for Civil Security".
 
       <h2>Contact</h2>
-      <a href= "mailto:info@bcl-leipzig.de">Robert Weiße</a><br>
       Brandschutz Consult Ingenieurgesellschaft mbH Leipzig<br>
+      <a href= "mailto:info@bcl-leipzig.de">Manuel Osburg</a><br>
       Torgauer Platz 3<br>
       04315 Leipzig<br>
+      <p>Tel: +49 341 269330</p>
       
       <h2>Disclaimer</h2>
       <h3>Content of the own pages</h3>
@@ -73,7 +74,29 @@ export class AppController {
       and completeness of the linked content as it lies outside our area of responsibility,
       and we have no influence on its future design. If we become aware of any infringements,
       we will promptly remove such links.
-    `
+    `;
   }
 
+  @Get('contact')
+  contact() {
+    return `
+      <h1>Contact</h1>
+      <h2>Consortium Coordinator</h2>
+      <a href="http://www.fz-juelich.de/profile/arnold_l" target="_blank">Prof. Dr. Lukas Arnold</a><br>
+      Forschungszentrum Jülich GmbH<br>
+      Institute for Advanced Simulation (IAS)<br>
+      IAS-7: Zivile Sicherheitsforschung<br>
+      Wilhelm-Johnen Straße<br>
+      52425 Jülich<br>
+
+      <h2>Consortium Partners</h2>
+      A list of all consortium partners can be found <a href="https://www.beskid-projekt.de/en/partner" target="_blank">here</a>.
+
+      <h2>Web-Developer</h2>
+      <a href= "mailto:info@bcl-leipzig.de">Robert Weiße</a><br>
+      Brandschutz Consult Ingenieurgesellschaft mbH Leipzig<br>
+      Torgauer Platz 3<br>
+      04315 Leipzig<br>
+    `;
+  }
 }
