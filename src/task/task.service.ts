@@ -190,7 +190,7 @@ export class TaskService {
         .filter((name) => lstatSync(join(sessionDirectory, name)).isDirectory())
         .map((name: string) => this.findTask(sessionId, name.slice(2) as UUID));
     } else {
-      throw new NotFoundException();
+      throw [];
     }
   }
 
