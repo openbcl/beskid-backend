@@ -1,0 +1,18 @@
+{
+  "micro": {
+    "name": "Micro Scale",
+    "desc": "The smallest scale involves mass samples in the microgram range. This scale is commonly used for determining the reaction kinetics of pyrolysis."
+  },
+  "small": {
+    "name": "Small Scale",
+    "desc": "Samples on the order of approximately 10 cm. In this scale, the fire behavior is observed without considering the spread of the fire itself. From these observations, information about the thermodynamic properties of the sample can be derived."
+  },
+  "intermediate": {
+    "name": "Intermediate Scale",
+    "desc": "In this scale, using samples in the kilogram range and dimensions ranging from 20 cm to 50 cm, controlled laboratory experiments are conducted where fire spread is possible. This scale serves for the validation of the modeling approach."
+  },
+  "real": {
+    "name": "Real Scale",
+    "desc": "At this scale, experiments are conducted in real-life dimensions using generic geometries based on rail vehicles and corresponding mockups. The primary objective at this scale is model validation."
+  }
+}
