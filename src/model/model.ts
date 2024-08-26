@@ -15,6 +15,8 @@ export class Scale {
 }
 
 export class Experiment {
+  @ApiProperty({ description: 'Experiment id' })
+  id: string;
   @ApiProperty({ description: 'Experiment name' })
   name: string;
   @ApiProperty({ type: Scale})

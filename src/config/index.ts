@@ -19,10 +19,11 @@ export const models: Model[] = rawModels.map((model, key) => ({
   id: key + 1,
   ...model,
   fds: model.versions.map(version => ({
-    revision: rawFDS[version],
-    version
+    version,
+    revision: rawFDS[version]
   })),
   experiments: model.experiments.map(id => ({
+    id,
     ...rawExperiments[id],
     scale: rawScales[rawExperiments[id].scale]
   }))
