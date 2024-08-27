@@ -1,8 +1,8 @@
 import { resolve } from 'path';
-import * as rawModels from './models.json'
-import * as rawFDS from './fds.json'
-import * as rawExperiments from './experiments.json'
-import * as rawScales from './scales.json'
+import * as rawModels from './models.json';
+import * as rawFDS from './fds.json';
+import * as rawExperiments from './experiments.json';
+import * as rawScales from './scales.json';
 import { Model } from '../model/model';
 
 // file settings
@@ -19,13 +19,13 @@ export const models: Model[] = rawModels.map((model, key) => ({
   id: key + 1,
   name: model.name,
   resolutions: model.resolutions,
-  fds: model.versions.map(version => ({
+  fds: model.versions.map((version) => ({
     version,
-    revision: rawFDS[version]
+    revision: rawFDS[version],
   })),
-  experiments: model.experiments.map(id => ({
+  experiments: model.experiments.map((id) => ({
     id,
     ...rawExperiments[id],
-    scale: rawScales[rawExperiments[id].scale]
-  }))
+    scale: rawScales[rawExperiments[id].scale],
+  })),
 }));
