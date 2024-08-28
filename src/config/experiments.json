@@ -1,6 +1,6 @@
 {
-  "TGA": { "name": "Thermogravimetric Analysis", "scale": "micro" },
-  "MCC": { "name": "Micro Combustion Calorimeter", "scale": "micro" },
+  "TGA": { "name": "Thermogravimetric Analysis (TGA)", "scale": "micro" },
+  "MCC": { "name": "Micro Combustion Calorimeter (MCC)", "scale": "micro" },
   "CONE": { "name": "Cone Calorimeter", "scale": "small" },
   "LAB": { "name": "Laboratory Experiment", "scale": "intermediate" },
   "REAL": { "name": "Experiment with real-life dimensions", "scale": "real" }
