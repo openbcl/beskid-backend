@@ -1,0 +1,4 @@
+[
+  { "name": "model1", "resolutions": [100], "versions": ["6.7.6"], "experiments": ["TGA", "MCC", "CONE"] },
+  { "name": "model2", "resolutions": [100], "versions": ["6.7.6"], "experiments": ["LAB", "REAL"] }
+]
