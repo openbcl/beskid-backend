@@ -9,6 +9,9 @@ import { Request } from 'express';
 import { Observable } from 'rxjs';
 import { SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { join } from 'path';
+import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { dataDirectory, encoding, expirationFile } from '../config';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
@@ -37,6 +40,14 @@ export class AuthGuard implements CanActivate {
     }
     try {
       const payload = this.jwtService.verify(token);
+      const sessionDirectory = join(dataDirectory, payload.sessionId);
+      const expirationFilePath = join(sessionDirectory, expirationFile);
+      if (!existsSync(expirationFilePath)) {
+        if (!existsSync(sessionDirectory)) {
+          mkdirSync(sessionDirectory, { recursive: true });
+        }
+        writeFileSync( expirationFilePath, `${payload.exp * 1000}`, encoding);
+      }
       request['sessionId'] = payload.sessionId;
     } catch {
       throw new UnauthorizedException();
