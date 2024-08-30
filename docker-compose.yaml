@@ -12,3 +12,6 @@ services:
       - scriptFile=
       - tokenExpirationTime=
       - tokenSecret=
+      - redisHost=
+      - redisPort=
+      - redisPW=

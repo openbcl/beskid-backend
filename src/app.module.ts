@@ -11,6 +11,7 @@ import { AuthService } from './auth/auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthGuard } from './auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { BullModule } from '@nestjs/bullmq';
 import { randomBytes } from 'crypto';
 
 @Module({
@@ -22,6 +23,13 @@ import { randomBytes } from 'crypto';
       global: true,
       secret: process.env['tokenSecret'] || randomBytes(256).toString('base64'),
       signOptions: { expiresIn: process.env['tokenExpirationTime'] || '7d' },
+    }),
+    BullModule.forRoot({
+      connection: {
+        host: process.env['redisHost'],
+        port: parseInt(process.env['redisPort']),
+        password: process.env['redisPW']
+´      },
     }),
   ],
   controllers: [AppController, ModelController, TaskController, AuthController],
