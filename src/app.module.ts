@@ -13,6 +13,9 @@ import { AuthGuard } from './auth/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { BullModule } from '@nestjs/bullmq';
 import { randomBytes } from 'crypto';
+import { QueueController } from './queue/queue.controller';
+import { QueueService } from './queue/queue.service';
+import { redisConnection } from './config';
 
 @Module({
   imports: [
@@ -24,20 +27,28 @@ import { randomBytes } from 'crypto';
       secret: process.env['tokenSecret'] || randomBytes(256).toString('base64'),
       signOptions: { expiresIn: process.env['tokenExpirationTime'] || '7d' },
     }),
-    BullModule.forRoot({
-      connection: {
-        host: process.env['redisHost'],
-        port: parseInt(process.env['redisPort']),
-        password: process.env['redisPW']
-´      },
+    BullModule.forRoot(process.env['redisConfigKey'], {
+      connection: redisConnection(),
+      defaultJobOptions: {
+        removeOnComplete: {
+          age: 30
+        },
+        removeOnFail: true,
+        attempts: 2,
+      },
+    }),
+    BullModule.registerQueue({
+      configKey: process.env['redisConfigKey'],
+      name: 'job',
     }),
   ],
-  controllers: [AppController, ModelController, TaskController, AuthController],
+  controllers: [AppController, ModelController, TaskController, AuthController, QueueController],
   providers: [
     AppService,
     ModelService,
     TaskService,
     AuthService,
+    QueueService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,

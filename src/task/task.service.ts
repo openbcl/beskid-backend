@@ -31,12 +31,15 @@ import {
   extension,
   trainingDirectory,
 } from '../config';
+import { QueueService } from '../queue/queue.service';
 
 @Injectable()
 export class TaskService {
   constructor(
     @Inject(forwardRef(() => ModelService))
     private readonly modelService: ModelService,
+    @Inject(forwardRef(() => QueueService))
+    private readonly queueService: QueueService,
   ) {}
 
   addTask(sessionId: UUID, createTask: CreateTaskDto) {
@@ -198,10 +201,8 @@ export class TaskService {
     const model = this.modelService.findModel(modelId);
     const modelResoution = model.resolutions.find((res) => res == resolution);
     if (modelResoution > 0) {
-      // TODO: Implement Queues! https://docs.nestjs.com/techniques/queues
       model.resolutions = [modelResoution];
-      Logger.log(`Running task "${taskId}" ...`, 'TaskService');
-      return (this.findTask(sessionId, taskId, false) as Task).run(model);
+      return this.queueService.appendTask(this.findTask(sessionId, taskId, false) as Task, model);
     } else {
       throw new BadRequestException();
     }

@@ -2,10 +2,8 @@ import { UUID, randomUUID } from 'crypto';
 import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
-import { execSync } from 'child_process';
 import { Model } from '../model/model';
-import { Logger } from '@nestjs/common';
-import { dataDirectory, encoding, extension } from '../config';
+import { dataDirectory, encoding } from '../config';
 import { ArrayMaxSize, ArrayMinSize, IsNumber, IsUUID } from 'class-validator';
 import { ApiProperty, PickType } from '@nestjs/swagger';
 
@@ -85,11 +83,6 @@ export class Task {
   directory: string;
   inputFilename: string;
 
-  private script = join(
-    process.env['scriptDir'] || join('..', '..', '..', 'python'),
-    process.env['scriptFile'] || 'test.py',
-  );
-
   constructor(
     public sessionId: string,
     values: number[],
@@ -97,6 +90,7 @@ export class Task {
     id: UUID = randomUUID(),
     date = new Date(),
     results: TaskResult[] = [],
+    inputFilename?: string
   ) {
     this.values = values;
     this.training = training;
@@ -108,10 +102,10 @@ export class Task {
       this.sessionId,
       `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`,
     );
-    this.inputFilename = `input_${this.timestamp(date)}.txt`;
+    this.inputFilename = inputFilename || `input_${this.timestamp(date)}.txt`;
   }
 
-  private timestamp = (date: Date) => {
+  timestamp = (date: Date) => {
     return date
       .toISOString()
       .replaceAll(':', '-')
@@ -129,28 +123,6 @@ export class Task {
       this.values.map((value) => value.toExponential(18)).join(EOL),
       { encoding },
     );
-  };
-
-  run = async (model: Model) => {
-    const date = new Date();
-    const outputFileName = `output_${this.timestamp(date)}_${model.name}_${
-      model.resolutions[0]
-    }`;
-    const process = `python ${this.script} ${outputFileName} ${model.name} ${this.inputFilename}`;
-    if (this.script.endsWith('test.py')) {
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-    }
-    const out = execSync(process, { cwd: this.directory });
-    Logger.log(out.toString(encoding), `TASK: ${this.id}`);
-    this.results.push({
-      filename: outputFileName + extension,
-      uriFile: `/v1/tasks/${this.id}/results/${outputFileName + extension}`,
-      uriData: `/v1/tasks/${this.id}/results/${outputFileName}`,
-      date,
-      model,
-      evaluation: TaskResultEvaluation.NEUTRAL,
-    });
-    return this.toDto();
   };
 
   toDto = (): TaskDto => ({
