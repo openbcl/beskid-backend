@@ -32,6 +32,6 @@ export const models: Model[] = rawModels.map((model, key) => ({
 
 export const redisConnection = () => ({
   host: process.env['redisHost'],
-  port: parseInt(process.env['redisPort']),
+  port: parseInt(process.env['redisPort']) || undefined,
   password: process.env['redisPW'],
 })

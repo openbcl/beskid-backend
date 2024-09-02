@@ -27,7 +27,7 @@ import { redisConnection } from './config';
       secret: process.env['tokenSecret'] || randomBytes(256).toString('base64'),
       signOptions: { expiresIn: process.env['tokenExpirationTime'] || '7d' },
     }),
-    BullModule.forRoot(process.env['redisConfigKey'], {
+    BullModule.forRoot(process.env['redisConfigKey'] || 'beskid', {
       connection: redisConnection(),
       defaultJobOptions: {
         removeOnComplete: {
@@ -38,7 +38,7 @@ import { redisConnection } from './config';
       },
     }),
     BullModule.registerQueue({
-      configKey: process.env['redisConfigKey'],
+      configKey: process.env['redisConfigKey'] || 'beskid',
       name: 'job',
     }),
   ],

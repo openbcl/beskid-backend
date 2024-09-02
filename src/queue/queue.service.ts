@@ -25,13 +25,13 @@ export class QueueService extends WorkerHost {
 
   async appendTask(task: Task, model: Model) {
     const data = new BeskidJob(task, model);
-    Logger.log(`APPEND job "${data.id}" ...`, 'TaskService');
+    Logger.log(`APPEND job "${data.id}"`, 'TaskService');
     const job = await this.jobQueue.add(data.id, data);
     return await job.waitUntilFinished(this.queueEvents, 10000);
   }
 
   async process(job: Job, _token?: string): Promise<any> {
-    Logger.log(`PROCESS job "${job.data.id}" ...`, 'TaskService');
+    Logger.log(`PROCESS job "${job.data.id}"`, 'TaskService');
     const task = new Task(
       job.data.task.sessionId,
       job.data.task.values,
@@ -57,7 +57,7 @@ export class QueueService extends WorkerHost {
       model: job.data.model,
       evaluation: TaskResultEvaluation.NEUTRAL,
     });
-    Logger.log(`FINISHED job "${job.data.id}" ...`, 'TaskService');
+    Logger.log(`FINISHED job "${job.data.id}"`, 'TaskService');
     return task.toDto();
   }
 }
