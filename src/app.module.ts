@@ -30,9 +30,7 @@ import { redisConnection } from './config';
     BullModule.forRoot(process.env['redisConfigKey'] || 'beskid', {
       connection: redisConnection(),
       defaultJobOptions: {
-        removeOnComplete: {
-          age: 30
-        },
+        removeOnComplete: { age: 3600 },
         removeOnFail: true,
         attempts: 2,
       },

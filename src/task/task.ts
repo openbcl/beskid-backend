@@ -24,26 +24,50 @@ export enum KeepTrainingData {
 }
 
 export class TaskResult {
-  @ApiProperty({ description: 'Filename with .json extension' })
-  filename: string;
+  @ApiProperty({
+    format: 'uuid',
+    description: 'UUID of job in queue',
+    required: false
+  })
+  id?: UUID;
 
-  @ApiProperty({ description: 'URI of file' })
-  uriFile: string;
+  @ApiProperty({
+    description: 'Filename with .json extension',
+    required: false
+  })
+  filename?: string;
 
-  @ApiProperty({ description: 'URI of file content' })
-  uriData: string;
+  @ApiProperty({
+    description: 'URI of file',
+    required: false
+  })
+  uriFile?: string;
 
-  @ApiProperty({ type: Date, description: 'Date of calculation' })
-  date: Date;
+  @ApiProperty({
+    description: 'URI of file content',
+    required: false
+  })
+  uriData?: string;
 
-  @ApiProperty({ type: Model, description: 'Model used for the calculation' })
+  @ApiProperty({
+    type: Date,
+    description: 'Date of calculation',
+    required: false
+  })
+  date?: Date;
+
+  @ApiProperty({
+    type: Model,
+    description: 'Model used for the calculation'
+  })
   model: Model;
 
   @ApiProperty({
     enum: TaskResultEvaluation,
     description: 'Evaluation of the quality of the results',
+    required: false
   })
-  evaluation: TaskResultEvaluation;
+  evaluation?: TaskResultEvaluation;
 }
 
 export class Task {
