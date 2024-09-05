@@ -1,11 +1,11 @@
 import { randomUUID, UUID } from "crypto";
 import { Model } from "../model/model";
-import { Task, TaskDto } from "../task/task";
+import { Task } from "../task/task";
 import { IsUUID } from "class-validator";
-import { ApiProperty, PickType } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { JobType } from "bullmq";
 
-export class BeskidJob {
+export class RedisJob {
   @ApiProperty({
     format: 'uuid',
     description: 'UUID of job in queue',
@@ -18,12 +18,6 @@ export class BeskidJob {
   @ApiProperty({ type: Model })
   model: Model;
 
-  @ApiProperty({
-    type: String,
-    required: false
-  })
-  state?: JobType | "unknown"
-
   constructor (task: Task, model: Model) {
     this.task = task;
     delete model.experiments;
@@ -32,8 +26,24 @@ export class BeskidJob {
   }
 }
 
-export class BeskidJobDto extends PickType(BeskidJob, ['id', 'model', 'state'] as const) {
-  task: TaskDto;
+export class Job {
+  @ApiProperty({
+    format: 'uuid',
+    description: 'UUID of job in queue',
+  })
+  jobId: UUID;
+
+  @ApiProperty({
+    format: 'uuid',
+    description: 'UUID of corresponding task',
+  })
+  taskId: UUID;
+
+  @ApiProperty({ type: Model })
+  model: Model;
+
+  @ApiProperty({ type: String })
+  state: JobType | 'unknown'
 }
 
 export class JobIdParam {

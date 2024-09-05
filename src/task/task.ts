@@ -6,6 +6,7 @@ import { Model } from '../model/model';
 import { dataDirectory, encoding } from '../config';
 import { ArrayMaxSize, ArrayMinSize, IsNumber, IsUUID } from 'class-validator';
 import { ApiProperty, PickType } from '@nestjs/swagger';
+import { Job } from '../queue/job';
 
 export enum TaskTraining {
   DISABLED = 'DISABLED',
@@ -25,36 +26,25 @@ export enum KeepTrainingData {
 
 export class TaskResult {
   @ApiProperty({
-    format: 'uuid',
-    description: 'UUID of job in queue',
-    required: false
+    description: 'Filename with .json extension'
   })
-  id?: UUID;
+  filename: string;
 
   @ApiProperty({
-    description: 'Filename with .json extension',
-    required: false
+    description: 'URI of file'
   })
-  filename?: string;
+  uriFile: string;
 
   @ApiProperty({
-    description: 'URI of file',
-    required: false
+    description: 'URI of file content'
   })
-  uriFile?: string;
-
-  @ApiProperty({
-    description: 'URI of file content',
-    required: false
-  })
-  uriData?: string;
+  uriData: string;
 
   @ApiProperty({
     type: Date,
-    description: 'Date of calculation',
-    required: false
+    description: 'Date of calculation'
   })
-  date?: Date;
+  date: Date;
 
   @ApiProperty({
     type: Model,
@@ -99,10 +89,16 @@ export class Task {
 
   @ApiProperty({
     type: [TaskResult],
-    description:
-      'Array with the results of calculations based on various AI models',
+    description: 'Array with the results of calculations based on various AI models'
   })
   results: TaskResult[];
+
+  @ApiProperty({
+    type: [Job],
+    description: 'Array containing current jobs',
+    required: false
+  })
+  jobs?: Job[];
 
   directory: string;
   inputFilename: string;
@@ -155,6 +151,7 @@ export class Task {
     training: this.training,
     date: this.date,
     results: this.results,
+    jobs: this.jobs
   });
 }
 
@@ -164,9 +161,10 @@ export class TaskDto extends PickType(Task, [
   'training',
   'date',
   'results',
+  'jobs',
 ] as const) {}
 
-export class CreateTaskDto extends PickType(Task, [
+export class CreateTask extends PickType(Task, [
   'values',
   'training',
 ] as const) {}

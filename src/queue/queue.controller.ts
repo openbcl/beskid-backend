@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, Request } from "@nestjs/common";
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { QueueService } from "./queue.service";
-import { BeskidJob, JobIdParam } from "./beskid.job";
+import { JobIdParam, Job } from "./job";
 import { UUID } from "crypto";
 import { JobType } from "bullmq";
 
@@ -16,7 +16,7 @@ export class QueueController {
 
   @Get()
   @ApiResponse({
-    type: [BeskidJob],
+    type: [Job],
     status: 200,
     description: 'Request all jobs in queue.',
   })
@@ -35,7 +35,7 @@ export class QueueController {
 
   @Get(':jobId')
   @ApiResponse({
-    type: BeskidJob,
+    type: Job,
     status: 200,
     description: 'Request a specific job of queue.',
   })
