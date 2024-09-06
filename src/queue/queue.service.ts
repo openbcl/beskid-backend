@@ -36,7 +36,7 @@ export class QueueService extends WorkerHost {
     Logger.log(`APPEND job "${data.id}"`, 'TaskService');
     const job: BullJob<RedisJob> = await this.jobQueue.add(data.id, data, {jobId: data.id});
     try {
-      return await job.waitUntilFinished(this.queueEvents, 500);
+      return await job.waitUntilFinished(this.queueEvents, 2500);
     } catch {
       task.jobs = (await this.findJobsOfTask(job.data.task.id));
       return task.toDto();
@@ -59,7 +59,7 @@ export class QueueService extends WorkerHost {
       bullJob.data.model.resolutions[0]
     }`;
     if (this.script.endsWith('test.py')) {
-      await new Promise((resolve) => setTimeout(resolve, 15000));
+      await new Promise((resolve) => setTimeout(resolve, Math.floor(30000 * Math.random())));
     }
     execSync(`python ${this.script} ${outputFileName} ${bullJob.data.model.name} ${task.inputFilename}`, { cwd: task.directory });    
     task.results.push({

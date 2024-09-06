@@ -20,9 +20,9 @@ export class RedisJob {
 
   constructor (task: Task, model: Model) {
     this.task = task;
-    delete model.experiments;
-    delete model.fds;
-    this.model = model;
+    this.model = { ...model };
+    delete this.model.experiments;
+    delete this.model.fds;
   }
 }
 

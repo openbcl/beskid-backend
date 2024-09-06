@@ -54,10 +54,9 @@ export class TaskResult {
 
   @ApiProperty({
     enum: TaskResultEvaluation,
-    description: 'Evaluation of the quality of the results',
-    required: false
+    description: 'Evaluation of the quality of the results'
   })
-  evaluation?: TaskResultEvaluation;
+  evaluation: TaskResultEvaluation;
 }
 
 export class Task {
