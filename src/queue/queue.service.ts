@@ -22,13 +22,7 @@ export class QueueService extends WorkerHost {
 
   constructor(@InjectQueue('job') private jobQueue: Queue) {
     super();
-    //this.cleanupQueue();
-  }
-
-  private async cleanupQueue() {
-    try {
-      (await this.jobQueue.getJobs()).map(job => job.remove());
-    } catch {}
+    //this.jobQueue.clean(0, 0);
   }
 
   async appendTask(task: Task, model: Model) {
@@ -89,6 +83,10 @@ export class QueueService extends WorkerHost {
       return await this.toDTO(bullJob);
     }
     throw new NotFoundException();
+  }
+
+  async deleteJob(jobId: UUID) {
+    return await this.jobQueue.remove(jobId);
   }
 
   private async findJobsOfTask(taskId: UUID, jobIdCompleted?: UUID) {

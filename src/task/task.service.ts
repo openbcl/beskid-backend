@@ -93,7 +93,13 @@ export class TaskService {
     return task.toDto();
   }
 
-  deleteTask(sessionId: UUID, taskId: UUID) {
+  async deleteTask(sessionId: UUID, taskId: UUID) {
+    const jobs = await this.queueService.findJobs(sessionId);
+    if (jobs.find(job => job.state === 'active')) {
+      throw new InternalServerErrorException('There are active jobs. Please wait until these jobs are completed.');
+    } else if (!!jobs.length) {
+      await Promise.all(jobs.map(async job => await this.queueService.deleteJob(job.jobId)))
+    }
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     try {
       rmSync(taskDirectory, { recursive: true, force: true });
