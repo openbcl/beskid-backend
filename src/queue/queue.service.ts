@@ -3,7 +3,7 @@ import { join } from "path";
 import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job as BullJob, JobType, Queue, QueueEvents } from "bullmq";
 import { extension, redisConnection } from '../config';
-import { Task, TaskResultEvaluation } from "../task/task";
+import { Task, TaskResult, TaskResultEvaluation } from "../task/task";
 import { Model } from "../model/model";
 import { Job, RedisJob } from "./job";
 import { execSync } from "child_process";
@@ -56,13 +56,21 @@ export class QueueService extends WorkerHost {
       await new Promise((resolve) => setTimeout(resolve, Math.floor(30000 * Math.random())));
     }
     execSync(`python ${this.script} ${outputFileName} ${bullJob.data.model.name} ${task.inputFilename}`, { cwd: task.directory });    
-    task.results.push({
+    const result = {
       filename: outputFileName + extension,
       uriFile: `/v1/tasks/${task.id}/results/${outputFileName + extension}`,
       uriData: `/v1/tasks/${task.id}/results/${outputFileName}`,
       date,
       model: bullJob.data.model,
       evaluation: TaskResultEvaluation.NEUTRAL,
+    };
+    task.results.push(result);
+    bullJob.updateData({
+      ...bullJob.data,
+      task: {
+        ...bullJob.data.task,
+        results: [ result ]
+      }
     });
     task.jobs = await this.findJobsOfTask(bullJob.data.task.id, bullJob.id as UUID);
     Logger.log(`FINISHED job "${bullJob.data.id}"`, 'TaskService');
@@ -83,6 +91,17 @@ export class QueueService extends WorkerHost {
       return await this.toDTO(bullJob);
     }
     throw new NotFoundException();
+  }
+
+  async deleteJobByFilename(sessionId: UUID, filename: string) {
+    const bullJob = (await this.jobQueue.getJobs())
+    .filter(bullJob => bullJob.data.task.sessionId === sessionId)
+    .find(bullJob => bullJob.data.task.results
+      .find((result: TaskResult) => result.filename === filename)
+    );
+    if (!!bullJob) {
+      await this.jobQueue.remove(bullJob.id);
+    }
   }
 
   async deleteJob(jobId: UUID) {

@@ -241,12 +241,12 @@ export class TaskService {
     }
   }
 
-  deleteTaskResult(
+  async deleteTaskResult(
     sessionId: UUID,
     taskId: UUID,
     fileId: string,
     keepTrainingDataData: boolean,
-  ): TaskDto {
+  ): Promise<TaskDto> {
     const task = this.findTask(sessionId, taskId, false, false) as Task;
     const filename = fileId.endsWith(extension) ? fileId : fileId + extension;
     const filepath = join(task.directory, filename);
@@ -263,6 +263,7 @@ export class TaskService {
       const trainingTaskDirectory = join(trainingDirectory, task.id);
       this.cleanupEvaluation(trainingTaskDirectory, result.evaluation, result);
     }
+    await this.queueService.deleteJobByFilename(sessionId, filename);
     return {
       ...task.toDto(),
       results: task.results.filter((r) => r.filename !== result.filename),
