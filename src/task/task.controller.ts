@@ -13,7 +13,7 @@ import { TaskService } from './task.service';
 import { UUID } from 'crypto';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  CreateTaskDto,
+  CreateTask,
   KeepTrainingData,
   Task,
   TaskIdParam,
@@ -38,7 +38,7 @@ export class TaskController {
   })
   addTask(
     @Request() req: { sessionId: UUID },
-    @Body() createTask: CreateTaskDto,
+    @Body() createTask: CreateTask,
   ) {
     return this.tasksService.addTask(req.sessionId, createTask);
   }

@@ -1,14 +1,23 @@
-version: '3'
 services:
+  redis-db:
+    image: "redis:7"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
   beskid-api:
     build: .
+    depends_on:
+      - redis-db
     volumes:
       - ./data/:/home/pn/data/
       - ./training/:/home/pn/training/
     ports:
       - 3000:3000
     environment:
-      - scriptDir=
+      - tokenExpirationTime=7d
+      - tokenSecret=abc123
       - scriptFile=
-      - tokenExpirationTime=
-      - tokenSecret=
+      - scriptDir=/app/python
+      - redisHost=redis-db
+      - redisPort=
+      - redisPW=
+      - redisConfigKey=

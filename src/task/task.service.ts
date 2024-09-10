@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { CreateTaskDto, Task, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTask, Task, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -31,15 +31,18 @@ import {
   extension,
   trainingDirectory,
 } from '../config';
+import { QueueService } from '../queue/queue.service';
 
 @Injectable()
 export class TaskService {
   constructor(
     @Inject(forwardRef(() => ModelService))
     private readonly modelService: ModelService,
+    @Inject(forwardRef(() => QueueService))
+    private readonly queueService: QueueService,
   ) {}
 
-  addTask(sessionId: UUID, createTask: CreateTaskDto) {
+  addTask(sessionId: UUID, createTask: CreateTask) {
     const task = new Task(sessionId, createTask.values, createTask.training);
     task.saveInputfile();
     Logger.log(
@@ -90,7 +93,13 @@ export class TaskService {
     return task.toDto();
   }
 
-  deleteTask(sessionId: UUID, taskId: UUID) {
+  async deleteTask(sessionId: UUID, taskId: UUID) {
+    const jobs = await this.queueService.findJobs(sessionId);
+    if (jobs.find(job => job.state === 'active')) {
+      throw new InternalServerErrorException('There are active jobs. Please wait until these jobs are completed.');
+    } else if (!!jobs.length) {
+      await Promise.all(jobs.map(async job => await this.queueService.deleteJob(job.jobId)))
+    }
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     try {
       rmSync(taskDirectory, { recursive: true, force: true });
@@ -198,10 +207,8 @@ export class TaskService {
     const model = this.modelService.findModel(modelId);
     const modelResoution = model.resolutions.find((res) => res == resolution);
     if (modelResoution > 0) {
-      // TODO: Implement Queues! https://docs.nestjs.com/techniques/queues
       model.resolutions = [modelResoution];
-      Logger.log(`Running task "${taskId}" ...`, 'TaskService');
-      return (this.findTask(sessionId, taskId, false) as Task).run(model);
+      return this.queueService.appendTask(this.findTask(sessionId, taskId, false) as Task, model);
     } else {
       throw new BadRequestException();
     }
@@ -234,12 +241,12 @@ export class TaskService {
     }
   }
 
-  deleteTaskResult(
+  async deleteTaskResult(
     sessionId: UUID,
     taskId: UUID,
     fileId: string,
     keepTrainingDataData: boolean,
-  ): TaskDto {
+  ): Promise<TaskDto> {
     const task = this.findTask(sessionId, taskId, false, false) as Task;
     const filename = fileId.endsWith(extension) ? fileId : fileId + extension;
     const filepath = join(task.directory, filename);
@@ -256,6 +263,7 @@ export class TaskService {
       const trainingTaskDirectory = join(trainingDirectory, task.id);
       this.cleanupEvaluation(trainingTaskDirectory, result.evaluation, result);
     }
+    await this.queueService.deleteJobByFilename(sessionId, filename);
     return {
       ...task.toDto(),
       results: task.results.filter((r) => r.filename !== result.filename),

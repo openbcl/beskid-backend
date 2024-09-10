@@ -2,12 +2,11 @@ import { UUID, randomUUID } from 'crypto';
 import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
-import { execSync } from 'child_process';
 import { Model } from '../model/model';
-import { Logger } from '@nestjs/common';
-import { dataDirectory, encoding, extension } from '../config';
+import { dataDirectory, encoding } from '../config';
 import { ArrayMaxSize, ArrayMinSize, IsNumber, IsUUID } from 'class-validator';
 import { ApiProperty, PickType } from '@nestjs/swagger';
+import { Job } from '../queue/job';
 
 export enum TaskTraining {
   DISABLED = 'DISABLED',
@@ -26,24 +25,36 @@ export enum KeepTrainingData {
 }
 
 export class TaskResult {
-  @ApiProperty({ description: 'Filename with .json extension' })
+  @ApiProperty({
+    description: 'Filename with .json extension'
+  })
   filename: string;
 
-  @ApiProperty({ description: 'URI of file' })
+  @ApiProperty({
+    description: 'URI of file'
+  })
   uriFile: string;
 
-  @ApiProperty({ description: 'URI of file content' })
+  @ApiProperty({
+    description: 'URI of file content'
+  })
   uriData: string;
 
-  @ApiProperty({ type: Date, description: 'Date of calculation' })
+  @ApiProperty({
+    type: Date,
+    description: 'Date of calculation'
+  })
   date: Date;
 
-  @ApiProperty({ type: Model, description: 'Model used for the calculation' })
+  @ApiProperty({
+    type: Model,
+    description: 'Model used for the calculation'
+  })
   model: Model;
 
   @ApiProperty({
     enum: TaskResultEvaluation,
-    description: 'Evaluation of the quality of the results',
+    description: 'Evaluation of the quality of the results'
   })
   evaluation: TaskResultEvaluation;
 }
@@ -77,18 +88,19 @@ export class Task {
 
   @ApiProperty({
     type: [TaskResult],
-    description:
-      'Array with the results of calculations based on various AI models',
+    description: 'Array with the results of calculations based on various AI models'
   })
   results: TaskResult[];
 
+  @ApiProperty({
+    type: [Job],
+    description: 'Array containing current jobs',
+    required: false
+  })
+  jobs?: Job[];
+
   directory: string;
   inputFilename: string;
-
-  private script = join(
-    process.env['scriptDir'] || join('..', '..', '..', 'python'),
-    process.env['scriptFile'] || 'test.py',
-  );
 
   constructor(
     public sessionId: string,
@@ -97,6 +109,7 @@ export class Task {
     id: UUID = randomUUID(),
     date = new Date(),
     results: TaskResult[] = [],
+    inputFilename?: string
   ) {
     this.values = values;
     this.training = training;
@@ -108,10 +121,10 @@ export class Task {
       this.sessionId,
       `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`,
     );
-    this.inputFilename = `input_${this.timestamp(date)}.txt`;
+    this.inputFilename = inputFilename || `input_${this.timestamp(date)}.txt`;
   }
 
-  private timestamp = (date: Date) => {
+  timestamp = (date: Date) => {
     return date
       .toISOString()
       .replaceAll(':', '-')
@@ -131,34 +144,13 @@ export class Task {
     );
   };
 
-  run = async (model: Model) => {
-    const date = new Date();
-    const outputFileName = `output_${this.timestamp(date)}_${model.name}_${
-      model.resolutions[0]
-    }`;
-    const process = `python ${this.script} ${outputFileName} ${model.name} ${this.inputFilename}`;
-    if (this.script.endsWith('test.py')) {
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-    }
-    const out = execSync(process, { cwd: this.directory });
-    Logger.log(out.toString(encoding), `TASK: ${this.id}`);
-    this.results.push({
-      filename: outputFileName + extension,
-      uriFile: `/v1/tasks/${this.id}/results/${outputFileName + extension}`,
-      uriData: `/v1/tasks/${this.id}/results/${outputFileName}`,
-      date,
-      model,
-      evaluation: TaskResultEvaluation.NEUTRAL,
-    });
-    return this.toDto();
-  };
-
   toDto = (): TaskDto => ({
     id: this.id,
     values: this.values,
     training: this.training,
     date: this.date,
     results: this.results,
+    jobs: this.jobs
   });
 }
 
@@ -168,9 +160,10 @@ export class TaskDto extends PickType(Task, [
   'training',
   'date',
   'results',
+  'jobs',
 ] as const) {}
 
-export class CreateTaskDto extends PickType(Task, [
+export class CreateTask extends PickType(Task, [
   'values',
   'training',
 ] as const) {}

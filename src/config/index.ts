@@ -29,3 +29,9 @@ export const models: Model[] = rawModels.map((model, key) => ({
     scale: rawScales[rawExperiments[id].scale],
   })),
 }));
+
+export const redisConnection = () => ({
+  host: process.env['redisHost'],
+  port: parseInt(process.env['redisPort']) || undefined,
+  password: process.env['redisPW'],
+})

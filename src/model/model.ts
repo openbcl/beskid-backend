@@ -37,9 +37,15 @@ export class Model {
   })
   resolutions: number[];
 
-  @ApiProperty({ type: [Experiment] })
-  experiments: Experiment[];
+  @ApiProperty({
+    type: [Experiment],
+    required: false
+  })
+  experiments?: Experiment[];
 
-  @ApiProperty({ type: [FDS] })
-  fds: FDS[];
+  @ApiProperty({
+    type: [FDS],
+    required: false
+  })
+  fds?: FDS[];
 }
