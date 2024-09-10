@@ -1,17 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getQueueToken } from '@nestjs/bullmq';
-import { TaskService } from './task.service';
-import { QueueService } from '../queue/queue.service';
-import { ModelService } from '../model/model.service';
+import { QueueService } from './queue.service';
 import { QueueMock } from '../../test/mocks';
+import { getQueueToken } from '@nestjs/bullmq';
 
 describe('TaskService', () => {
-  let service: TaskService;
+  let service: QueueService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        TaskService, ModelService, QueueService,
+        QueueService,
         {
           provide: getQueueToken('job'),
           useValue: QueueMock
@@ -19,7 +17,7 @@ describe('TaskService', () => {
       ],
     }).compile();
 
-    service = module.get<TaskService>(TaskService);
+    service = module.get<QueueService>(QueueService);
   });
 
   it('should be defined', () => {
