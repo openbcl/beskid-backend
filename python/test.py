@@ -35,14 +35,14 @@ class ConvNet1D(nn.Module):
         return x
 
 # Load the trained model
-model_path = "model1.pth"
+model_path = os.path.join(sys.path[0], "model1.pth")
 model = ConvNet1D()
-model.load_state_dict(torch.load(model_path, map_location='cpu'))
+model.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=True))
 model.eval()  # Set to evaluation mode
 
 # Predict using the model
 def make_predictions(input_data):
-    input_tensor = torch.tensor(input_data, dtype=torch.float32)
+    input_tensor = torch.as_tensor(input_data, dtype=torch.float32)
     if input_tensor.ndim == 1:
         input_tensor = input_tensor.unsqueeze(0)  
     model.eval()
