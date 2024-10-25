@@ -8,3 +8,4 @@ data
 training
 python/*
 !python/*.py
+!python/*.pth
