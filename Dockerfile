@@ -13,7 +13,7 @@ COPY --from=build /usr/src/app/dist /app/dist
 COPY --from=build /usr/src/app/python /app/python
 ENV PATH="/opt/venv/beskid/bin:$PATH"
 ENV scriptDir="/app/python"
-RUN python3 -m venv /opt/venv/beskid && pip install numpy
+RUN python3 -m venv /opt/venv/beskid && pip install numpy torch
 USER pn
 WORKDIR /home/pn
 CMD [ "node", "/app/dist/main.js" ]
