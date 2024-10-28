@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
@@ -131,7 +130,7 @@ export class TaskService {
       .filter((name) => name.match(/output_.+?.json/))
       .map((filename) => {
         const rm = filename.match(
-          this.composedRegex(/output_/, timestampRegEx, /_(.+?)_(\d+).json/),
+          this.composedRegex(/output_/, timestampRegEx, /_(.+?).json/),
         );
         if (!rm) {
           Logger.error(
@@ -141,10 +140,6 @@ export class TaskService {
           throw new InternalServerErrorException();
         }
         const model = this.modelService.findModelByName(rm[7]);
-        const modelResoution = model.resolutions.find(
-          (resolution) => resolution == (rm[8] as any),
-        );
-        model.resolutions = [modelResoution];
         return {
           filename,
           uriFile: `/v1/tasks/${taskId}/results/${filename}`,
@@ -203,15 +198,9 @@ export class TaskService {
     }
   }
 
-  runTask(sessionId: UUID, taskId: UUID, modelId: number, resolution: number) {
+  runTask(sessionId: UUID, taskId: UUID, modelId: number) {
     const model = this.modelService.findModel(modelId);
-    const modelResoution = model.resolutions.find((res) => res == resolution);
-    if (modelResoution > 0) {
-      model.resolutions = [modelResoution];
-      return this.queueService.appendTask(this.findTask(sessionId, taskId, false) as Task, model);
-    } else {
-      throw new BadRequestException();
-    }
+    return this.queueService.appendTask(this.findTask(sessionId, taskId, false) as Task, model);
   }
 
   findTaskResult(

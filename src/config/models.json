@@ -1,4 +1,12 @@
 [
-  { "name": "model1", "resolutions": [100], "versions": ["6.7.6"], "experiments": ["TGA", "MCC", "CONE"] },
-  { "name": "model2", "resolutions": [100], "versions": ["6.7.6"], "experiments": ["LAB", "REAL"] }
+    {
+        "name": "model1",
+        "resolution": 100,
+        "fds": "6.7.6",
+        "experiments": [
+            { "name" : "TGA", "conditions": [5, 10] },
+            { "name" : "MCC", "conditions": [10] },
+            { "name" : "CONE", "conditions": [25] }
+        ]
+    }
 ]

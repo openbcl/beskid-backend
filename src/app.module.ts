@@ -15,7 +15,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { randomBytes } from 'crypto';
 import { QueueController } from './queue/queue.controller';
 import { QueueService } from './queue/queue.service';
-import { redisConnection } from './config';
+import { redisConnection, redisPrefix } from './config';
 
 @Module({
   imports: [
@@ -27,8 +27,9 @@ import { redisConnection } from './config';
       secret: process.env['tokenSecret'] || randomBytes(256).toString('base64'),
       signOptions: { expiresIn: process.env['tokenExpirationTime'] || '7d' },
     }),
-    BullModule.forRoot(process.env['redisConfigKey'] || 'beskid', {
+    BullModule.forRoot({
       connection: redisConnection(),
+      prefix: redisPrefix(),
       defaultJobOptions: {
         removeOnComplete: { age: 3600 },
         removeOnFail: true,
@@ -36,7 +37,7 @@ import { redisConnection } from './config';
       },
     }),
     BullModule.registerQueue({
-      configKey: process.env['redisConfigKey'] || 'beskid',
+      prefix: redisPrefix(),
       name: 'job',
     }),
   ],

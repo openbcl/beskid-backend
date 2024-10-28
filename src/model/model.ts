@@ -21,6 +21,10 @@ export class Experiment {
   name: string;
   @ApiProperty({ type: Scale })
   scale: Scale;
+  @ApiProperty({ description: 'Condition measurement unit' })
+  conditionMU: string;
+  @ApiProperty({ type: [Number], description: 'Conditions' })
+  conditions: number[];
 }
 
 export class Model {
@@ -31,12 +35,11 @@ export class Model {
   name: string;
 
   @ApiProperty({
-    type: [Number],
-    description: 'Available resolutions',
-    default: [100],
+    type: Number,
+    description: 'Available resolution',
   })
-  resolutions: number[];
-
+  resolution: number;
+  
   @ApiProperty({
     type: [Experiment],
     required: false
@@ -44,8 +47,8 @@ export class Model {
   experiments?: Experiment[];
 
   @ApiProperty({
-    type: [FDS],
+    type: FDS,
     required: false
   })
-  fds?: FDS[];
+  fds?: FDS;
 }

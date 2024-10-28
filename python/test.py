@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Usage: python dummy_code.py <name of output file> <model_name> <sample_input.txt-name of input file> 
 
 # python test_02.py "12qw" "model1" sample_input.txt

@@ -2,7 +2,7 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { join } from "path";
 import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job as BullJob, JobType, Queue, QueueEvents } from "bullmq";
-import { extension, redisConnection } from '../config';
+import { extension, redisConnection, redisPrefix } from '../config';
 import { Task, TaskResult, TaskResultEvaluation } from "../task/task";
 import { Model } from "../model/model";
 import { Job, RedisJob } from "./job";
@@ -18,7 +18,10 @@ export class QueueService extends WorkerHost {
     process.env['scriptFile'] || 'test.py',
   );
 
-  private queueEvents: QueueEvents = new QueueEvents('job', { connection: redisConnection()})
+  private queueEvents: QueueEvents = new QueueEvents('job', {
+    connection: redisConnection(),
+    prefix: redisPrefix()
+  })
 
   constructor(@InjectQueue('job') private jobQueue: Queue) {
     super();
@@ -28,11 +31,11 @@ export class QueueService extends WorkerHost {
   async appendTask(task: Task, model: Model) {
     const data = new RedisJob(task, model);
     Logger.log(`APPEND job "${data.id}"`, 'TaskService');
-    const job: BullJob<RedisJob> = await this.jobQueue.add(data.id, data, {jobId: data.id});
+    const bullJob: BullJob<RedisJob> = await this.jobQueue.add(data.id, data, {jobId: data.id});
     try {
-      return await job.waitUntilFinished(this.queueEvents, 2500);
+      return await bullJob.waitUntilFinished(this.queueEvents, 2500);
     } catch {
-      task.jobs = (await this.findJobsOfTask(job.data.task.id));
+      task.jobs = (await this.findJobsOfTask(bullJob.data.task.id));
       return task.toDto();
     }
   }
@@ -49,11 +52,9 @@ export class QueueService extends WorkerHost {
       bullJob.data.task.inputFilename
     )
     const date = new Date();
-    const outputFileName = `output_${task.timestamp(date)}_${bullJob.data.model.name}_${
-      bullJob.data.model.resolutions[0]
-    }`;
+    const outputFileName = `output_${task.timestamp(date)}_${bullJob.data.model.name}`;
     if (this.script.endsWith('test.py')) {
-      await new Promise((resolve) => setTimeout(resolve, Math.floor(30000 * Math.random())));
+      await new Promise((resolve) => setTimeout(resolve, Math.floor(10000 * Math.random())));
     }
     execSync(`python ${this.script} ${outputFileName} ${bullJob.data.model.name} ${task.inputFilename}`, { cwd: task.directory });    
     const result = {
