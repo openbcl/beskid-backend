@@ -117,8 +117,8 @@ export class QueueService extends WorkerHost {
         taskId: bullJob.data.task.id,
         model: bullJob.data.model,
         state: bullJob.id === jobIdCompleted ? 'completed' : await this.jobQueue.getJobState(bullJob.id)
-      }) as Job
-    ))
+      }) as Job)
+    )
   }
 
   private async toDTO(bullJob: BullJob<RedisJob>) {

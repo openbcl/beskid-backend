@@ -18,10 +18,7 @@ export class ModelService {
     return models.filter(
       (model) =>
         (!fdsVersion || model.fds.version === fdsVersion) &&
-        (!experimentID ||
-          !!model.experiments.find(
-            (experiment) => experiment.id === experimentID,
-          )),
+        (!experimentID || !!model.experiments.find((experiment) => experiment.id === experimentID)),
     );
   }
 }

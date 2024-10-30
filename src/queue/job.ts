@@ -22,7 +22,6 @@ export class RedisJob {
     this.task = task;
     this.model = { ...model };
     delete this.model.experiments;
-    delete this.model.fds;
   }
 }
 
