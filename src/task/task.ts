@@ -2,10 +2,10 @@ import { UUID, randomUUID } from 'crypto';
 import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
-import { Model } from '../model/model';
+import { Experiment, Model, ModelPartial } from '../model/model';
 import { dataDirectory, encoding } from '../config';
-import { ArrayMaxSize, ArrayMinSize, IsNumber, IsUUID } from 'class-validator';
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { IsNumber, IsUUID } from 'class-validator';
+import { ApiProperty, IntersectionType, PickType } from '@nestjs/swagger';
 import { Job } from '../queue/job';
 
 export enum TaskTraining {
@@ -47,10 +47,10 @@ export class TaskResult {
   date: Date;
 
   @ApiProperty({
-    type: Model,
+    type: ModelPartial,
     description: 'Model used for the calculation'
   })
-  model: Model;
+  model: ModelPartial;
 
   @ApiProperty({
     enum: TaskResultEvaluation,
@@ -59,17 +59,24 @@ export class TaskResult {
   evaluation: TaskResultEvaluation;
 }
 
+export class TaskCondition extends IntersectionType(PickType(Experiment, ['id']), PickType(Model, ['resolution'])) {
+  @ApiProperty({ description: 'Experiment condition value' })
+  value: number
+}
+
 export class Task {
   @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
-  @ArrayMinSize(100)
-  @ArrayMaxSize(100)
   @ApiProperty({
     type: [Number],
-    description: 'Array of (100) input values',
-    minLength: 100,
-    maxLength: 100,
+    description: 'Array of input values',
   })
   values: number[];
+
+  @ApiProperty({
+    type: TaskCondition,
+    description: 'Select experiment (id), the experiments condition and the number of input values (resolution)'
+  })
+  condition: TaskCondition
 
   @ApiProperty({
     enum: TaskTraining,
@@ -105,6 +112,7 @@ export class Task {
   constructor(
     public sessionId: string,
     values: number[],
+    condition: TaskCondition,
     training = TaskTraining.DISABLED,
     id: UUID = randomUUID(),
     date = new Date(),
@@ -112,6 +120,7 @@ export class Task {
     inputFilename?: string
   ) {
     this.values = values;
+    this.condition = condition;
     this.training = training;
     this.id = id;
     this.date = date;
@@ -121,7 +130,7 @@ export class Task {
       this.sessionId,
       `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`,
     );
-    this.inputFilename = inputFilename || `input_${this.timestamp(date)}.txt`;
+    this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.condition.resolution}_${this.condition.id}_${this.condition.value}.txt`;
   }
 
   timestamp = (date: Date) => {
@@ -147,6 +156,7 @@ export class Task {
   toDto = (): TaskDto => ({
     id: this.id,
     values: this.values,
+    condition: this.condition,
     training: this.training,
     date: this.date,
     results: this.results,
@@ -157,6 +167,7 @@ export class Task {
 export class TaskDto extends PickType(Task, [
   'id',
   'values',
+  'condition',
   'training',
   'date',
   'results',
@@ -165,6 +176,7 @@ export class TaskDto extends PickType(Task, [
 
 export class CreateTask extends PickType(Task, [
   'values',
+  'condition',
   'training',
 ] as const) {}
 

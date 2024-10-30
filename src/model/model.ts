@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export class FDS {
   @ApiProperty({ description: 'FDS Version' })
@@ -44,11 +44,13 @@ export class Model {
     type: [Experiment],
     required: false
   })
-  experiments?: Experiment[];
+  experiments: Experiment[];
 
   @ApiProperty({
     type: FDS,
     required: false
   })
-  fds?: FDS;
+  fds: FDS;
 }
+
+export class ModelPartial extends PickType(Model, ['id', 'name', 'fds']){}

@@ -4,7 +4,7 @@ import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
 import { Job as BullJob, JobType, Queue, QueueEvents } from "bullmq";
 import { extension, redisConnection, redisPrefix } from '../config';
 import { Task, TaskResult, TaskResultEvaluation } from "../task/task";
-import { Model } from "../model/model";
+import { ModelPartial } from "../model/model";
 import { Job, RedisJob } from "./job";
 import { execSync } from "child_process";
 import { UUID } from "crypto";
@@ -28,7 +28,7 @@ export class QueueService extends WorkerHost {
     //this.jobQueue.clean(0, 0);
   }
 
-  async appendTask(task: Task, model: Model) {
+  async appendTask(task: Task, model: ModelPartial) {
     const data = new RedisJob(task, model);
     Logger.log(`APPEND job "${data.id}"`, 'TaskService');
     const bullJob: BullJob<RedisJob> = await this.jobQueue.add(data.id, data, {jobId: data.id});
@@ -45,6 +45,7 @@ export class QueueService extends WorkerHost {
     const task = new Task(
       bullJob.data.task.sessionId,
       bullJob.data.task.values,
+      bullJob.data.task.condition,
       bullJob.data.task.training,
       bullJob.data.task.id,
       bullJob.data.task.date,
