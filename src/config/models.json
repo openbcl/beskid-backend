@@ -14,7 +14,7 @@
         "resolution": 100,
         "fds": "6.9.1",
         "experiments": [
-            { "name" : "TGA", "conditions": [20, 40] },
+            { "name" : "TGA", "conditions": [10, 20, 40] },
             { "name" : "MCC", "conditions": [15] },
             { "name" : "CONE", "conditions": [30] }
         ]
