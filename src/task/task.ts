@@ -26,42 +26,45 @@ export enum KeepTrainingData {
 
 export class TaskResult {
   @ApiProperty({
-    description: 'Filename with .json extension'
+    description: 'Filename with .json extension',
   })
   filename: string;
 
   @ApiProperty({
-    description: 'URI of file'
+    description: 'URI of file',
   })
   uriFile: string;
 
   @ApiProperty({
-    description: 'URI of file content'
+    description: 'URI of file content',
   })
   uriData: string;
 
   @ApiProperty({
     type: Date,
-    description: 'Date of calculation'
+    description: 'Date of calculation',
   })
   date: Date;
 
   @ApiProperty({
     type: ModelPartial,
-    description: 'Model used for the calculation'
+    description: 'Model used for the calculation',
   })
   model: ModelPartial;
 
   @ApiProperty({
     enum: TaskResultEvaluation,
-    description: 'Evaluation of the quality of the results'
+    description: 'Evaluation of the quality of the results',
   })
   evaluation: TaskResultEvaluation;
 }
 
-export class TaskCondition extends IntersectionType(PickType(Experiment, ['id']), PickType(Model, ['resolution'])) {
+export class TaskSetting extends IntersectionType(
+  PickType(Experiment, ['id']),
+  PickType(Model, ['resolution']),
+) {
   @ApiProperty({ description: 'Experiment condition value' })
-  value: number
+  condition: number;
 }
 
 export class Task {
@@ -73,10 +76,11 @@ export class Task {
   values: number[];
 
   @ApiProperty({
-    type: TaskCondition,
-    description: 'Select experiment (id), the experiments condition and the number of input values (resolution)'
+    type: TaskSetting,
+    description:
+      'Select experiment (id), the experiments condition and the number of input values (resolution)',
   })
-  condition: TaskCondition
+  setting: TaskSetting;
 
   @ApiProperty({
     enum: TaskTraining,
@@ -95,14 +99,15 @@ export class Task {
 
   @ApiProperty({
     type: [TaskResult],
-    description: 'Array with the results of calculations based on various AI models'
+    description:
+      'Array with the results of calculations based on various AI models',
   })
   results: TaskResult[];
 
   @ApiProperty({
     type: [Job],
     description: 'Array containing current jobs',
-    required: false
+    required: false,
   })
   jobs?: Job[];
 
@@ -112,15 +117,15 @@ export class Task {
   constructor(
     public sessionId: string,
     values: number[],
-    condition: TaskCondition,
+    setting: TaskSetting,
     training = TaskTraining.DISABLED,
     id: UUID = randomUUID(),
     date = new Date(),
     results: TaskResult[] = [],
-    inputFilename?: string
+    inputFilename?: string,
   ) {
     this.values = values;
-    this.condition = condition;
+    this.setting = setting;
     this.training = training;
     this.id = id;
     this.date = date;
@@ -130,7 +135,7 @@ export class Task {
       this.sessionId,
       `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`,
     );
-    this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.condition.resolution}_${this.condition.id}_${this.condition.value}.txt`;
+    this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.setting.resolution}_${this.setting.id}_${this.setting.condition}.txt`;
   }
 
   timestamp = (date: Date) => {
@@ -156,18 +161,18 @@ export class Task {
   toDto = (): TaskDto => ({
     id: this.id,
     values: this.values,
-    condition: this.condition,
+    setting: this.setting,
     training: this.training,
     date: this.date,
     results: this.results,
-    jobs: this.jobs
+    jobs: this.jobs,
   });
 }
 
 export class TaskDto extends PickType(Task, [
   'id',
   'values',
-  'condition',
+  'setting',
   'training',
   'date',
   'results',
@@ -176,7 +181,7 @@ export class TaskDto extends PickType(Task, [
 
 export class CreateTask extends PickType(Task, [
   'values',
-  'condition',
+  'setting',
   'training',
 ] as const) {}
 

@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { CreateTask, Task, TaskCondition, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTask, Task, TaskSetting, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -43,7 +43,7 @@ export class TaskService {
   ) {}
 
   addTask(sessionId: UUID, createTask: CreateTask) {
-    const task = new Task(sessionId, createTask.values, createTask.condition, createTask.training);
+    const task = new Task(sessionId, createTask.values, createTask.setting, createTask.training);
     task.saveInputfile();
     Logger.log(
       `Created new task "${task.id}" for session "${sessionId}"`,
@@ -129,10 +129,10 @@ export class TaskService {
     const date = new Date(
       Date.parse(`${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`),
     );
-    const condition: TaskCondition = {
+    const setting: TaskSetting = {
       id: di[8],
       resolution: Number.parseInt(di[7]),
-      value: Number.parseFloat(di[9])
+      condition: Number.parseFloat(di[9]),
     }
     const results = readdirSync(taskDirectory)
       .filter((name) => name.match(/output_.+?.json/))
@@ -187,7 +187,7 @@ export class TaskService {
       parseValues
         ? this.parseInputfile(join(taskDirectory, inputFilename))
         : undefined,
-      condition,
+      setting,
       training,
       taskId,
       date,
@@ -210,7 +210,7 @@ export class TaskService {
   runTask(sessionId: UUID, taskId: UUID, modelId: number) {
     const model = this.modelService.findModel(modelId);
     const task = this.findTask(sessionId, taskId, false) as Task;
-    if (!model.experiments.find(experiment => experiment.id === task.condition.id && experiment.conditions.find(condition => condition === task.condition.value))) {
+    if (!model.experiments.find(experiment => experiment.id === task.setting.id && experiment.conditions.find(condition => condition === task.setting.condition))) {
       throw new UnprocessableEntityException();
     }
     return this.queueService.appendTask(task, this.modelService.toPartial(model));

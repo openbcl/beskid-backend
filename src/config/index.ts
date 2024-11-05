@@ -37,6 +37,6 @@ export const redisConnection = () => ({
   host: process.env['redisHost'],
   port: parseInt(process.env['redisPort']) || undefined,
   password: process.env['redisPW'],
-})
+});
 
 export const redisPrefix = () => process.env['redisConfigKey'] || 'beskid'

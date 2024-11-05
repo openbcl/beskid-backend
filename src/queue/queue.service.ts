@@ -45,7 +45,7 @@ export class QueueService extends WorkerHost {
     const task = new Task(
       bullJob.data.task.sessionId,
       bullJob.data.task.values,
-      bullJob.data.task.condition,
+      bullJob.data.task.setting,
       bullJob.data.task.training,
       bullJob.data.task.id,
       bullJob.data.task.date,

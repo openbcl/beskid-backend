@@ -7,7 +7,7 @@ export class ModelService {
   findModelByName(modelName: string) {
     return models.find((model) => model.name === modelName);
   }
-  
+
   findModelPartialByName(modelName: string) {
     return this.toPartial(this.findModelByName(modelName))
   }
