@@ -34,21 +34,24 @@ export class Model {
   @ApiProperty({ description: 'AI model name (identifier)' })
   name: string;
 
+  @ApiProperty({ description: 'AI model description' })
+  description: string;
+
   @ApiProperty({
     type: Number,
     description: 'Available resolution',
   })
   resolution: number;
-  
+
   @ApiProperty({
     type: [Experiment],
-    required: false
+    required: false,
   })
   experiments: Experiment[];
 
   @ApiProperty({
     type: FDS,
-    required: false
+    required: false,
   })
   fds: FDS;
 }

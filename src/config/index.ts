@@ -17,6 +17,7 @@ export const trainingDirectory = resolve('training');
 // generate models
 export const models: Model[] = rawModels.map((model, key) => ({
   id: key + 1,
+  description: model.description,
   name: model.name,
   resolution: model.resolution,
   fds: {

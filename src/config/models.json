@@ -1,6 +1,7 @@
 [
     {
         "name": "model1",
+        "description": "Proof of work AI model (real implementation)",
         "resolution": 100,
         "fds": "6.7.6",
         "experiments": [
@@ -11,6 +12,7 @@
     },
     {
         "name": "model2",
+        "description": "Fake AI model with random output",
         "resolution": 100,
         "fds": "6.9.1",
         "experiments": [
