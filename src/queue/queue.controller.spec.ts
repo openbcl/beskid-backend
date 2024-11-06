@@ -1,17 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getQueueToken } from '@nestjs/bullmq';
-import { TaskService } from './task.service';
-import { QueueService } from '../queue/queue.service';
-import { ModelService } from '../model/model.service';
+import { QueueController } from './queue.controller';
+import { QueueService } from './queue.service';
 import { QueueMock } from '../../test/mocks';
 
-describe('TaskService', () => {
-  let service: TaskService;
+describe('QueueController', () => {
+  let controller: QueueController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      controllers: [QueueController],
       providers: [
-        TaskService, ModelService, QueueService,
+        QueueService,
         {
           provide: getQueueToken('job'),
           useValue: QueueMock
@@ -19,10 +19,10 @@ describe('TaskService', () => {
       ],
     }).compile();
 
-    service = module.get<TaskService>(TaskService);
+    controller = module.get<QueueController>(QueueController);
   });
 
   it('should be defined', () => {
-    expect(service).toBeDefined();
+    expect(controller).toBeDefined();
   });
 });

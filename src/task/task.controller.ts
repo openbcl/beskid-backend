@@ -13,7 +13,7 @@ import { TaskService } from './task.service';
 import { UUID } from 'crypto';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  CreateTaskDto,
+  CreateTask,
   KeepTrainingData,
   Task,
   TaskIdParam,
@@ -38,7 +38,7 @@ export class TaskController {
   })
   addTask(
     @Request() req: { sessionId: UUID },
-    @Body() createTask: CreateTaskDto,
+    @Body() createTask: CreateTask,
   ) {
     return this.tasksService.addTask(req.sessionId, createTask);
   }
@@ -92,7 +92,7 @@ export class TaskController {
     return this.tasksService.deleteTask(req.sessionId, params.taskId);
   }
 
-  @Post('/:taskId/model/:modelId/resolution/:resolution')
+  @Post('/:taskId/model/:modelId')
   @ApiResponse({
     type: Task,
     status: 201,
@@ -103,13 +103,11 @@ export class TaskController {
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,
     @Param('modelId') modelId: number,
-    @Param('resolution') resolution: number,
   ) {
     return this.tasksService.runTask(
       req.sessionId,
       params.taskId,
       modelId,
-      resolution,
     );
   }
 

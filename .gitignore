@@ -8,6 +8,7 @@ training/*
 python/*
 !python/*.py
 !python/sample*
+!python/*.pth
 
 # Logs
 logs

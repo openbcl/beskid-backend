@@ -1,5 +1,10 @@
 {
   "training": "ENABLED",
+  "condition": {
+    "id": "TGA",
+    "resolution": 100,
+    "value": 5
+  },
   "values": [
     0.000000000000000000e+00,
     2.870977684848486158e-02,

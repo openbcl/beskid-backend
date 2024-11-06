@@ -2,12 +2,11 @@ import { UUID, randomUUID } from 'crypto';
 import { join } from 'path';
 import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
-import { execSync } from 'child_process';
-import { Model } from '../model/model';
-import { Logger } from '@nestjs/common';
-import { dataDirectory, encoding, extension } from '../config';
-import { ArrayMaxSize, ArrayMinSize, IsNumber, IsUUID } from 'class-validator';
-import { ApiProperty, PickType } from '@nestjs/swagger';
+import { Experiment, Model, ModelPartial } from '../model/model';
+import { dataDirectory, encoding } from '../config';
+import { IsNumber, IsUUID } from 'class-validator';
+import { ApiProperty, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
+import { Job } from '../queue/job';
 
 export enum TaskTraining {
   DISABLED = 'DISABLED',
@@ -26,20 +25,32 @@ export enum KeepTrainingData {
 }
 
 export class TaskResult {
-  @ApiProperty({ description: 'Filename with .json extension' })
+  @ApiProperty({
+    description: 'Filename with .json extension',
+  })
   filename: string;
 
-  @ApiProperty({ description: 'URI of file' })
+  @ApiProperty({
+    description: 'URI of file',
+  })
   uriFile: string;
 
-  @ApiProperty({ description: 'URI of file content' })
+  @ApiProperty({
+    description: 'URI of file content',
+  })
   uriData: string;
 
-  @ApiProperty({ type: Date, description: 'Date of calculation' })
+  @ApiProperty({
+    type: Date,
+    description: 'Date of calculation',
+  })
   date: Date;
 
-  @ApiProperty({ type: Model, description: 'Model used for the calculation' })
-  model: Model;
+  @ApiProperty({
+    type: ModelPartial,
+    description: 'Model used for the calculation',
+  })
+  model: ModelPartial;
 
   @ApiProperty({
     enum: TaskResultEvaluation,
@@ -48,17 +59,29 @@ export class TaskResult {
   evaluation: TaskResultEvaluation;
 }
 
+export class TaskSetting extends IntersectionType(
+  PickType(Experiment, [ 'id' ]),
+  PartialType(PickType(Experiment, [ 'name', 'conditionMU' ])),
+  PickType(Model, ['resolution']),
+) {
+  @ApiProperty({ description: 'Experiment condition value' })
+  condition: number;
+}
+
 export class Task {
   @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
-  @ArrayMinSize(100)
-  @ArrayMaxSize(100)
   @ApiProperty({
     type: [Number],
-    description: 'Array of (100) input values',
-    minLength: 100,
-    maxLength: 100,
+    description: 'Array of input values',
   })
   values: number[];
+
+  @ApiProperty({
+    type: TaskSetting,
+    description:
+      'Select experiment (id), the experiments condition and the number of input values (resolution)',
+  })
+  setting: TaskSetting;
 
   @ApiProperty({
     enum: TaskTraining,
@@ -82,23 +105,28 @@ export class Task {
   })
   results: TaskResult[];
 
+  @ApiProperty({
+    type: [Job],
+    description: 'Array containing current jobs',
+    required: false,
+  })
+  jobs?: Job[];
+
   directory: string;
   inputFilename: string;
-
-  private script = join(
-    process.env['scriptDir'] || join('..', '..', '..', 'python'),
-    process.env['scriptFile'] || 'test.py',
-  );
 
   constructor(
     public sessionId: string,
     values: number[],
+    setting: TaskSetting,
     training = TaskTraining.DISABLED,
     id: UUID = randomUUID(),
     date = new Date(),
     results: TaskResult[] = [],
+    inputFilename?: string,
   ) {
     this.values = values;
+    this.setting = setting;
     this.training = training;
     this.id = id;
     this.date = date;
@@ -108,10 +136,10 @@ export class Task {
       this.sessionId,
       `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`,
     );
-    this.inputFilename = `input_${this.timestamp(date)}.txt`;
+    this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.setting.resolution}_${this.setting.id}_${this.setting.condition}.txt`;
   }
 
-  private timestamp = (date: Date) => {
+  timestamp = (date: Date) => {
     return date
       .toISOString()
       .replaceAll(':', '-')
@@ -131,47 +159,30 @@ export class Task {
     );
   };
 
-  run = async (model: Model) => {
-    const date = new Date();
-    const outputFileName = `output_${this.timestamp(date)}_${model.name}_${
-      model.resolutions[0]
-    }`;
-    const process = `python ${this.script} ${outputFileName} ${model.name} ${this.inputFilename}`;
-    if (this.script.endsWith('test.py')) {
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-    }
-    const out = execSync(process, { cwd: this.directory });
-    Logger.log(out.toString(encoding), `TASK: ${this.id}`);
-    this.results.push({
-      filename: outputFileName + extension,
-      uriFile: `/v1/tasks/${this.id}/results/${outputFileName + extension}`,
-      uriData: `/v1/tasks/${this.id}/results/${outputFileName}`,
-      date,
-      model,
-      evaluation: TaskResultEvaluation.NEUTRAL,
-    });
-    return this.toDto();
-  };
-
   toDto = (): TaskDto => ({
     id: this.id,
     values: this.values,
+    setting: this.setting,
     training: this.training,
     date: this.date,
     results: this.results,
+    jobs: this.jobs,
   });
 }
 
 export class TaskDto extends PickType(Task, [
   'id',
   'values',
+  'setting',
   'training',
   'date',
   'results',
+  'jobs',
 ] as const) {}
 
-export class CreateTaskDto extends PickType(Task, [
+export class CreateTask extends PickType(Task, [
   'values',
+  'setting',
   'training',
 ] as const) {}
 
