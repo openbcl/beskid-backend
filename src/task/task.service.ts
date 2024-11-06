@@ -32,6 +32,7 @@ import {
   trainingDirectory,
 } from '../config';
 import { QueueService } from '../queue/queue.service';
+import * as rawExperiments from '../config/experiments.json';
 
 @Injectable()
 export class TaskService {
@@ -131,8 +132,10 @@ export class TaskService {
     );
     const setting: TaskSetting = {
       id: di[8],
+      name: rawExperiments[di[8]].name,
       resolution: Number.parseInt(di[7]),
       condition: Number.parseFloat(di[9]),
+      conditionMU: rawExperiments[di[8]].conditionMU,
     }
     const results = readdirSync(taskDirectory)
       .filter((name) => name.match(/output_.+?.json/))

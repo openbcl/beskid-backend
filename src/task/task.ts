@@ -5,7 +5,7 @@ import { EOL } from 'os';
 import { Experiment, Model, ModelPartial } from '../model/model';
 import { dataDirectory, encoding } from '../config';
 import { IsNumber, IsUUID } from 'class-validator';
-import { ApiProperty, IntersectionType, PickType } from '@nestjs/swagger';
+import { ApiProperty, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
 import { Job } from '../queue/job';
 
 export enum TaskTraining {
@@ -60,7 +60,8 @@ export class TaskResult {
 }
 
 export class TaskSetting extends IntersectionType(
-  PickType(Experiment, ['id']),
+  PickType(Experiment, [ 'id' ]),
+  PartialType(PickType(Experiment, [ 'name', 'conditionMU' ])),
   PickType(Model, ['resolution']),
 ) {
   @ApiProperty({ description: 'Experiment condition value' })
