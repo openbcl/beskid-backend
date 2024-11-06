@@ -36,6 +36,10 @@ export class QueueService extends WorkerHost {
       return await bullJob.waitUntilFinished(this.queueEvents, 2500);
     } catch {
       task.jobs = (await this.findJobsOfTask(bullJob.data.task.id));
+      const job = task.jobs.find(job => job.jobId === bullJob.data.id);
+      if (job.state === 'completed') {
+        job.state = 'active';
+      }
       return task.toDto();
     }
   }
