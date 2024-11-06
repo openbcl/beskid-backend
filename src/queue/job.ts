@@ -1,28 +1,18 @@
 import { randomUUID, UUID } from "crypto";
-import { Model } from "../model/model";
+import { ModelPartial } from "../model/model";
 import { Task } from "../task/task";
 import { IsUUID } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 import { JobType } from "bullmq";
 
 export class RedisJob {
-  @ApiProperty({
-    format: 'uuid',
-    description: 'UUID of job in queue',
-  })
   id: UUID = randomUUID();
-
-  @ApiProperty({ type: Task })
   task: Task;
+  model: ModelPartial;
 
-  @ApiProperty({ type: Model })
-  model: Model;
-
-  constructor (task: Task, model: Model) {
+  constructor (task: Task, model: ModelPartial) {
     this.task = task;
     this.model = { ...model };
-    delete this.model.experiments;
-    delete this.model.fds;
   }
 }
 
@@ -39,8 +29,11 @@ export class Job {
   })
   taskId: UUID;
 
-  @ApiProperty({ type: Model })
-  model: Model;
+  @ApiProperty({
+    type: ModelPartial,
+    description: 'Model used for the calculation'
+  })
+  model: ModelPartial;
 
   @ApiProperty({ type: String })
   state: JobType | 'unknown'

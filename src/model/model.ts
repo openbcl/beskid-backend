@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export class FDS {
   @ApiProperty({ description: 'FDS Version' })
@@ -21,6 +21,10 @@ export class Experiment {
   name: string;
   @ApiProperty({ type: Scale })
   scale: Scale;
+  @ApiProperty({ description: 'Condition measurement unit' })
+  conditionMU: string;
+  @ApiProperty({ type: [Number], description: 'Conditions' })
+  conditions: number[];
 }
 
 export class Model {
@@ -30,22 +34,26 @@ export class Model {
   @ApiProperty({ description: 'AI model name (identifier)' })
   name: string;
 
+  @ApiProperty({ description: 'AI model description' })
+  description: string;
+
   @ApiProperty({
-    type: [Number],
-    description: 'Available resolutions',
-    default: [100],
+    type: Number,
+    description: 'Available resolution',
   })
-  resolutions: number[];
+  resolution: number;
 
   @ApiProperty({
     type: [Experiment],
-    required: false
+    required: false,
   })
-  experiments?: Experiment[];
+  experiments: Experiment[];
 
   @ApiProperty({
-    type: [FDS],
-    required: false
+    type: FDS,
+    required: false,
   })
-  fds?: FDS[];
+  fds: FDS;
 }
+
+export class ModelPartial extends PickType(Model, ['id', 'name', 'fds']){}

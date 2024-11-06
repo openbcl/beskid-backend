@@ -1,4 +1,24 @@
 [
-  { "name": "model1", "resolutions": [100], "versions": ["6.7.6"], "experiments": ["TGA", "MCC", "CONE"] },
-  { "name": "model2", "resolutions": [100], "versions": ["6.7.6"], "experiments": ["LAB", "REAL"] }
+    {
+        "name": "model1",
+        "description": "Proof of work AI model (real implementation)",
+        "resolution": 100,
+        "fds": "6.7.6",
+        "experiments": [
+            { "name" : "TGA", "conditions": [5, 10] },
+            { "name" : "MCC", "conditions": [10] },
+            { "name" : "CONE", "conditions": [25] }
+        ]
+    },
+    {
+        "name": "model2",
+        "description": "Fake AI model with random output",
+        "resolution": 100,
+        "fds": "6.9.1",
+        "experiments": [
+            { "name" : "TGA", "conditions": [10, 20, 40] },
+            { "name" : "MCC", "conditions": [15] },
+            { "name" : "CONE", "conditions": [30] }
+        ]
+    }
 ]

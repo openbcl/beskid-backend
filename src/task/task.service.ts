@@ -1,16 +1,16 @@
 import {
-  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
   NotImplementedException,
   ForbiddenException,
+  UnprocessableEntityException,
   StreamableFile,
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { CreateTask, Task, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTask, Task, TaskSetting, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -32,6 +32,7 @@ import {
   trainingDirectory,
 } from '../config';
 import { QueueService } from '../queue/queue.service';
+import * as rawExperiments from '../config/experiments.json';
 
 @Injectable()
 export class TaskService {
@@ -43,7 +44,7 @@ export class TaskService {
   ) {}
 
   addTask(sessionId: UUID, createTask: CreateTask) {
-    const task = new Task(sessionId, createTask.values, createTask.training);
+    const task = new Task(sessionId, createTask.values, createTask.setting, createTask.training);
     task.saveInputfile();
     Logger.log(
       `Created new task "${task.id}" for session "${sessionId}"`,
@@ -119,7 +120,9 @@ export class TaskService {
     const inputFilename = readdirSync(taskDirectory).find((name) =>
       name.match(/input_.+?.txt/),
     );
-    const di = inputFilename.match(timestampRegEx);
+    const di = inputFilename.match(
+      this.composedRegex(/input_/, timestampRegEx, /_(.+?)_(.+?)_(.+?).txt/)
+    );
     if (!inputFilename || !di) {
       Logger.error(`Inputfile of task "${taskId}" not found`, 'TaskService');
       throw new InternalServerErrorException();
@@ -127,11 +130,18 @@ export class TaskService {
     const date = new Date(
       Date.parse(`${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`),
     );
+    const setting: TaskSetting = {
+      id: di[8],
+      name: rawExperiments[di[8]].name,
+      resolution: Number.parseInt(di[7]),
+      condition: Number.parseFloat(di[9]),
+      conditionMU: rawExperiments[di[8]].conditionMU,
+    }
     const results = readdirSync(taskDirectory)
       .filter((name) => name.match(/output_.+?.json/))
       .map((filename) => {
         const rm = filename.match(
-          this.composedRegex(/output_/, timestampRegEx, /_(.+?)_(\d+).json/),
+          this.composedRegex(/output_/, timestampRegEx, /_(.+?).json/),
         );
         if (!rm) {
           Logger.error(
@@ -140,11 +150,7 @@ export class TaskService {
           );
           throw new InternalServerErrorException();
         }
-        const model = this.modelService.findModelByName(rm[7]);
-        const modelResoution = model.resolutions.find(
-          (resolution) => resolution == (rm[8] as any),
-        );
-        model.resolutions = [modelResoution];
+        const model = this.modelService.findModelPartialByName(rm[7]);
         return {
           filename,
           uriFile: `/v1/tasks/${taskId}/results/${filename}`,
@@ -184,6 +190,7 @@ export class TaskService {
       parseValues
         ? this.parseInputfile(join(taskDirectory, inputFilename))
         : undefined,
+      setting,
       training,
       taskId,
       date,
@@ -203,15 +210,13 @@ export class TaskService {
     }
   }
 
-  runTask(sessionId: UUID, taskId: UUID, modelId: number, resolution: number) {
+  runTask(sessionId: UUID, taskId: UUID, modelId: number) {
     const model = this.modelService.findModel(modelId);
-    const modelResoution = model.resolutions.find((res) => res == resolution);
-    if (modelResoution > 0) {
-      model.resolutions = [modelResoution];
-      return this.queueService.appendTask(this.findTask(sessionId, taskId, false) as Task, model);
-    } else {
-      throw new BadRequestException();
+    const task = this.findTask(sessionId, taskId, false) as Task;
+    if (!model.experiments.find(experiment => experiment.id === task.setting.id && experiment.conditions.find(condition => condition === task.setting.condition))) {
+      throw new UnprocessableEntityException();
     }
+    return this.queueService.appendTask(task, this.modelService.toPartial(model));
   }
 
   findTaskResult(

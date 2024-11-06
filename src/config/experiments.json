@@ -1,7 +1,5 @@
 {
-  "TGA": { "name": "Thermogravimetric Analysis (TGA)", "scale": "micro" },
-  "MCC": { "name": "Micro Combustion Calorimeter (MCC)", "scale": "micro" },
-  "CONE": { "name": "Cone Calorimeter", "scale": "small" },
-  "LAB": { "name": "Laboratory Experiment", "scale": "intermediate" },
-  "REAL": { "name": "Experiment with real-life dimensions", "scale": "real" }
+    "TGA": { "name": "Thermogravimetric Analysis (TGA)", "scale": "micro", "conditionMU": "Heating Rate (K/min)" },
+    "MCC": { "name": "Micro Combustion Calorimeter (MCC)", "scale": "micro", "conditionMU": "Heating Rate (K/min)" },
+    "CONE": { "name": "Cone Calorimeter", "scale": "small", "conditionMU": "Heat Flux (kW/m2)" }
 }
