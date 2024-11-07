@@ -23,19 +23,16 @@ export class ModelService {
     return this.toPartial(this.findModel(modelId));
   }
 
-  findModels(fdsVersion?: string, experimentID?: string) {
-    return models.filter(
-      (model) =>
-        (!fdsVersion || model.fds.version === fdsVersion) &&
-        (!experimentID || !!model.experiments.find((experiment) => experiment.id === experimentID)),
-    );
+  findModels() {
+    return models.filter(model => !model.disabled);
   }
 
   toPartial(model: Model): ModelPartial {
     return {
       id: model.id,
       name: model.name,
-      fds: model.fds
+      fds: model.fds,
+      disabled: model.disabled
     }
   }
 }

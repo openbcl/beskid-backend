@@ -37,23 +37,17 @@ export class Model {
   @ApiProperty({ description: 'AI model description' })
   description: string;
 
-  @ApiProperty({
-    type: Number,
-    description: 'Available resolution',
-  })
+  @ApiProperty({ type: Number, description: 'Available resolution' })
   resolution: number;
 
-  @ApiProperty({
-    type: [Experiment],
-    required: false,
-  })
+  @ApiProperty({ type: [Experiment] })
   experiments: Experiment[];
 
-  @ApiProperty({
-    type: FDS,
-    required: false,
-  })
+  @ApiProperty({ type: FDS })
   fds: FDS;
+
+  @ApiProperty({ type: Boolean, description: 'Disabled models are not available for new calculations.' })
+  disabled: boolean;
 }
 
-export class ModelPartial extends PickType(Model, ['id', 'name', 'fds']){}
+export class ModelPartial extends PickType(Model, ['id', 'name', 'fds', 'disabled']){}

@@ -15,8 +15,8 @@ export const dataDirectory = resolve('data');
 export const trainingDirectory = resolve('training');
 
 // generate models
-export const models: Model[] = rawModels.map((model, key) => ({
-  id: key + 1,
+export const models: Model[] = rawModels.map((model) => ({
+  id: model.id,
   description: model.description,
   name: model.name,
   resolution: model.resolution,
@@ -31,6 +31,7 @@ export const models: Model[] = rawModels.map((model, key) => ({
     conditions: experiment.conditions,
     conditionMU: rawExperiments[experiment.name].conditionMU
   })),
+  disabled: model.disabled,
 }));
 
 export const redisConnection = () => ({
