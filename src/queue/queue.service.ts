@@ -32,19 +32,16 @@ export class QueueService extends WorkerHost {
     const data = new RedisJob(task, model);
     Logger.log(`APPEND job "${data.id}"`, 'TaskService');
     const bullJob: BullJob<RedisJob> = await this.jobQueue.add(data.id, data, {jobId: data.id});
-    try {
-      return await bullJob.waitUntilFinished(this.queueEvents, 2500);
-    } catch {
-      task.jobs = (await this.findJobsOfTask(bullJob.data.task.id));
-      const job = task.jobs.find(job => job.jobId === bullJob.data.id);
-      if (job.state === 'completed') {
+    task.jobs = (await this.findJobsOfTask(bullJob.data.task.id)).map(job => {
+      if (job.jobId === bullJob.data.id && job.state === 'completed') {
         job.state = 'active';
       }
-      return task.toDto();
-    }
+      return job
+    });
+    return task.toDto();
   }
 
-  async process(bullJob: BullJob<RedisJob>, _token?: string): Promise<any> {
+  async process(bullJob: BullJob<RedisJob>, _token?: string) {
     Logger.log(`PROCESS job "${bullJob.data.id}"`, 'TaskService');
     const task = new Task(
       bullJob.data.task.sessionId,
