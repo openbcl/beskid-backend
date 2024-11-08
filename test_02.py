@@ -1,10 +1,9 @@
-#Usage: python test_02.py <id> <model_name> <sample_input.txt-name of input file> 
+#!/usr/bin/env python3
 
-# python test_02.py "12qw" "model1" sample_input.txt
-# python test_02.py "34er" "model_2" sample_input.txt
+# Usage: python test_02.py <model_name> <experiment_id> <experiment_condition> <name of input file> <name of output file>
+# Example: python test_02.py model1 TGA 10 sample_input.txt result_model1.json
 
 # The model was created using PyTorch version 2.0.1, so while the latest version may issue a warning, it can still be used.
-
 
 import torch
 import torch.nn as nn
@@ -34,25 +33,23 @@ class ConvNet1D(nn.Module):
         x = self.fc2(x)
         return x
 
-# Load the trained model
-model_path = "best_model_run_msg1ou0e.pth"
-model = ConvNet1D()
-model.load_state_dict(torch.load(model_path, map_location='cpu'))
-model.eval()  # Set to evaluation mode
 
 # Predict using the model
-def make_predictions(input_data):
-    input_tensor = torch.tensor(input_data, dtype=torch.float32)
+def make_predictions(model_path, input_data):
+    input_tensor = torch.as_tensor(input_data, dtype=torch.float32)
     if input_tensor.ndim == 1:
         input_tensor = input_tensor.unsqueeze(0)  
+    # Load the trained model
+    model = ConvNet1D()
+    model.load_state_dict(torch.load(model_path, map_location='cpu', weights_only=True))
     model.eval()
     with torch.no_grad():
         output = model(input_tensor)
     return output
 
 # Generate dummy outputs
-def create_dummy_outputs(sample_input):
-    return np.random.rand(sample_input.shape[0], 15)
+def create_dummy_outputs(input_data):
+    return np.random.rand(input_data.shape[0], 15)
 
 # Reverse scaling for a single parameter
 def reverse_scaling(scaled, min_val, max_val):
@@ -82,15 +79,15 @@ def reverse_scaling_all(scaled_values):
 
 if __name__ == "__main__":
     # Validate arguments
-    if len(sys.argv) != 4:
-        print("Usage: python script.py <id> <model_name> <inputfile>")
+    if len(sys.argv) != 6:
+        print("Usage: python test_02.py <model_name> <experiment_id> <experiment_condition> <name of input file> <name of output file>")
         sys.exit(1)
 
-    id, model_name, data_file = sys.argv[1], sys.argv[2], sys.argv[3]
+    model_name, experiment_id, experiment_condition, input_file, result_file = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5]
 
     # Load input data
     try:
-        data_array = np.loadtxt(data_file)
+        data_array = np.loadtxt(input_file)
     except Exception as e:
         print(f"Error reading data: {e}")
         sys.exit(1)
@@ -100,17 +97,19 @@ if __name__ == "__main__":
             print("Error: Data array must have 100 elements.")
             sys.exit(1)
         print(len(data_array))
-        sample_input = torch.from_numpy(data_array).float().unsqueeze(0) if data_array.ndim == 1 else torch.from_numpy(data_array).float()
+        input_data = torch.from_numpy(data_array).float().unsqueeze(0) if data_array.ndim == 1 else torch.from_numpy(data_array).float()
 
-        if sample_input.shape != (1, 100):
+        if input_data.shape != (1, 100):
             raise ValueError("Input must be of shape (1, 100)")
+        
+        # Define file path of model in file system
+        model_path = os.path.join(sys.path[0], f"{model_name}.pth")
 
         # Predict or generate dummy outputs
-        predictions = make_predictions(sample_input).numpy().tolist() if model_name == "model1" else create_dummy_outputs(sample_input).tolist()
+        predictions = make_predictions(model_path, input_data).numpy().tolist() if os.path.exists(model_path) else create_dummy_outputs(input_data).tolist()
 
         # Reverse scale predictions
-        y_pred = np.array(predictions)
-        y_pred = np.array([reverse_scaling_all(data) for data in y_pred])
+        y_pred = np.array([reverse_scaling_all(predictions[0])])[0]
 
         # Parameter names
         params = [
@@ -132,15 +131,19 @@ if __name__ == "__main__":
         ]
 
         # Create JSON output
-        predictions_json = [{params[j]: round(pred[j],4) for j in range(len(params))} for pred in y_pred]
-        # for pred_dict in predictions_json:
-        #     print(pred_dict)
+        predictions_json = [
+            {
+                "id": f"param_{i+1}",
+                "name": params[i],
+                "value": round(y_pred[i],4)
+            } for i in range(len(params))
+        ]
 
         # Save to JSON file
-        with open(f"{id}.json", 'w') as json_file:
-            json.dump(predictions_json[0], json_file, indent=2)
+        with open(f"{result_file}.json", 'w') as json_file:
+            json.dump(predictions_json, json_file, indent=2)
 
-        print(f"Predictions saved to {id}.json")
+        print(f"Predictions saved to {result_file}.json")
 
     except ValueError as e:
         print(f"Error: {e}")
