@@ -8,10 +8,6 @@ export class ModelService {
     return models.find((model) => model.name === modelName);
   }
 
-  findModelPartialByName(modelName: string) {
-    return this.toPartial(this.findModelByName(modelName))
-  }
-
   findModel(modelId: number) {
     if (modelId < 0 || modelId > models.length) {
       throw new NotFoundException();

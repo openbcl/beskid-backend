@@ -138,10 +138,10 @@ export class TaskService {
       conditionMU: rawExperiments[di[8]].conditionMU,
     }
     const results = readdirSync(taskDirectory)
-      .filter((name) => name.match(/output_.+?.json/))
+      .filter((name) => name.match(/result_.+?.json/))
       .map((filename) => {
         const rm = filename.match(
-          this.composedRegex(/output_/, timestampRegEx, /_(.+?).json/),
+          this.composedRegex(/result_/, timestampRegEx, /_model_(.+?).json/),
         );
         if (!rm) {
           Logger.error(
@@ -150,7 +150,7 @@ export class TaskService {
           );
           throw new InternalServerErrorException();
         }
-        const model = this.modelService.findModelPartialByName(rm[7]);
+        const model = this.modelService.findModelPartial(parseInt(rm[7]));
         return {
           filename,
           uriFile: `/v1/tasks/${taskId}/results/${filename}`,

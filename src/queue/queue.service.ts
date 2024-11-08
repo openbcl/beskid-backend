@@ -54,15 +54,15 @@ export class QueueService extends WorkerHost {
       bullJob.data.task.inputFilename
     )
     const date = new Date();
-    const outputFileName = `output_${task.timestamp(date)}_${bullJob.data.model.name}`;
+    const resultFileName = `result_${task.timestamp(date)}_model_${bullJob.data.model.id}`;
     if (this.script.endsWith('test.py')) {
       await new Promise((resolve) => setTimeout(resolve, Math.floor(10000 * Math.random())));
     }
-    execSync(`python ${this.script} ${outputFileName} ${bullJob.data.model.name} ${task.inputFilename}`, { cwd: task.directory });    
+    execSync(`python ${this.script} ${resultFileName} ${bullJob.data.model.name} ${task.inputFilename}`, { cwd: task.directory });    
     const result = {
-      filename: outputFileName + extension,
-      uriFile: `/v1/tasks/${task.id}/results/${outputFileName + extension}`,
-      uriData: `/v1/tasks/${task.id}/results/${outputFileName}`,
+      filename: resultFileName + extension,
+      uriFile: `/v1/tasks/${task.id}/results/${resultFileName + extension}`,
+      uriData: `/v1/tasks/${task.id}/results/${resultFileName}`,
       date,
       model: bullJob.data.model,
       evaluation: TaskResultEvaluation.NEUTRAL,
