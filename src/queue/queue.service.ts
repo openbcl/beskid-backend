@@ -58,7 +58,7 @@ export class QueueService extends WorkerHost {
     if (this.script.endsWith('test.py')) {
       await new Promise((resolve) => setTimeout(resolve, Math.floor(10000 * Math.random())));
     }
-    execSync(`python ${this.script} ${resultFileName} ${bullJob.data.model.name} ${task.inputFilename}`, { cwd: task.directory });    
+    execSync(`python ${this.script} ${bullJob.data.model.name} ${task.setting.id} ${task.setting.condition} ${task.inputFilename} ${resultFileName}`, { cwd: task.directory });    
     const result = {
       filename: resultFileName + extension,
       uriFile: `/v1/tasks/${task.id}/results/${resultFileName + extension}`,

@@ -61,7 +61,7 @@ export class TaskResult {
 
 export class TaskSetting extends IntersectionType(
   PickType(Experiment, [ 'id' ]),
-  PartialType(PickType(Experiment, [ 'name', 'conditionMU' ])),
+  PickType(PartialType(Experiment), [ 'name', 'conditionMU' ]),
   PickType(Model, ['resolution']),
 ) {
   @ApiProperty({ description: 'Experiment condition value' })
