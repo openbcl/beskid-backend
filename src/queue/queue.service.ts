@@ -1,8 +1,8 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { join } from "path";
 import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
-import { Job as BullJob, JobType, Queue, QueueEvents } from "bullmq";
-import { extension, redisConnection, redisPrefix } from '../config';
+import { Job as BullJob, JobType, Queue } from "bullmq";
+import { extension} from '../config';
 import { Task, TaskResult, TaskResultEvaluation } from "../task/task";
 import { ModelPartial } from "../model/model";
 import { Job, RedisJob } from "./job";
@@ -17,11 +17,6 @@ export class QueueService extends WorkerHost {
     process.env['scriptDir'] || join('..', '..', '..', 'python'),
     process.env['scriptFile'] || 'test.py',
   );
-
-  private queueEvents: QueueEvents = new QueueEvents('job', {
-    connection: redisConnection(),
-    prefix: redisPrefix()
-  })
 
   constructor(@InjectQueue('job') private jobQueue: Queue) {
     super();

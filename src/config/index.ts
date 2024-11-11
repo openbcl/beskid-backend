@@ -33,11 +33,3 @@ export const models: Model[] = rawModels.map((model) => ({
   })),
   disabled: model.disabled,
 }));
-
-export const redisConnection = () => ({
-  host: process.env['redisHost'],
-  port: parseInt(process.env['redisPort']) || undefined,
-  password: process.env['redisPW'],
-});
-
-export const redisPrefix = () => process.env['redisConfigKey'] || 'beskid'

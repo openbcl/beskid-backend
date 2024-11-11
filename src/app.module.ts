@@ -15,7 +15,30 @@ import { BullModule } from '@nestjs/bullmq';
 import { randomBytes } from 'crypto';
 import { QueueController } from './queue/queue.controller';
 import { QueueService } from './queue/queue.service';
-import { redisConnection, redisPrefix } from './config';
+import { ConnectionOptions } from 'bullmq';
+
+
+const prefix = () => process.env['redisConfigKey'] || 'beskid';
+
+const connection = (): ConnectionOptions => {
+  const password = process.env['redisPW'];
+  const { ca, cert, key } = {
+    ca: process.env['redisCA'],
+    cert: process.env['redisClientCert'],
+    key: process.env['redisClientKey']
+  };
+  return {
+    host: process.env['redisHost'],
+    port: parseInt(process.env['redisPort']) || undefined,
+    ...(!!ca?.length ? {
+      tls: {
+        ca,
+        ...(!!cert?.length && !!key?.length ? { cert, key } : {})
+      }
+    } : {}),
+    ...(!cert?.length || !key?.length && !!password?.length ? { password } : {}),
+  };
+};
 
 @Module({
   imports: [
@@ -28,8 +51,8 @@ import { redisConnection, redisPrefix } from './config';
       signOptions: { expiresIn: process.env['tokenExpirationTime'] || '7d' },
     }),
     BullModule.forRoot({
-      connection: redisConnection(),
-      prefix: redisPrefix(),
+      connection: connection(),
+      prefix: prefix(),
       defaultJobOptions: {
         removeOnComplete: { age: 3600 },
         removeOnFail: true,
@@ -37,7 +60,7 @@ import { redisConnection, redisPrefix } from './config';
       },
     }),
     BullModule.registerQueue({
-      prefix: redisPrefix(),
+      prefix: prefix(),
       name: 'job',
     }),
   ],

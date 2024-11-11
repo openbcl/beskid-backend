@@ -102,6 +102,7 @@ if __name__ == "__main__":
         if input_data.shape != (1, 100):
             raise ValueError("Input must be of shape (1, 100)")
         
+        # Define file path of model in file system
         model_path = os.path.join(sys.path[0], f"{model_name}.pth")
 
         # Predict or generate dummy outputs
