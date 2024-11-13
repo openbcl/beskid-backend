@@ -8,6 +8,7 @@ import {
   Put,
   Query,
   Request,
+  StreamableFile,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
@@ -115,7 +116,7 @@ export class TaskController {
   @ApiResponse({
     status: 200,
     description:
-      'Retrieve calculation results of a task. If you specify the filename including its extension as fileId, the results file is provided as a download. If you only specify the filename without its extension, the content of the file is returned in JSON format.',
+      'Retrieve results of a task. If you specify the filename including its extension as fileId, the results file is provided as a download. If you only specify the filename without its extension, the content of the file is returned in JSON format.',
   })
   findTaskResult(
     @Request() req: { sessionId: UUID },
@@ -123,6 +124,43 @@ export class TaskController {
     @Param('fileId') fileId: string,
   ) {
     return this.tasksService.findTaskResult(
+      req.sessionId,
+      params.taskId,
+      fileId,
+    );
+  }
+
+  @Get('/:taskId/results/:fileId/template-data')
+  @ApiResponse({
+    type: String,
+    status: 200,
+    description:
+      'Converts results of a task into FDS plaintext template.',
+  })
+  findTaskResultTemplateData(
+    @Request() req: { sessionId: UUID },
+    @Param() params: TaskIdParam,
+    @Param('fileId') fileId: string,
+  ) {
+    return this.tasksService.findTaskResultTemplateData(
+      req.sessionId,
+      params.taskId,
+      fileId,
+    );
+  }
+
+  @Get('/:taskId/results/:fileId/template-file')
+  @ApiResponse({
+    status: 200,
+    description:
+      'Converts results of a task into FDS template file.',
+  })
+  findTaskResultTemplateFile(
+    @Request() req: { sessionId: UUID },
+    @Param() params: TaskIdParam,
+    @Param('fileId') fileId: string,
+  ) {
+    return this.tasksService.findTaskResultTemplateFile(
       req.sessionId,
       params.taskId,
       fileId,
@@ -156,7 +194,7 @@ export class TaskController {
   @ApiResponse({
     status: 200,
     description:
-      'Deletes calculation result of a task. Both the file name with and without file extension can be specified as fileID. With the "keepTrainingData" setting, you can decide whether the corresponding evaluated training data should also be deleted.',
+      'Deletes result of a task. Both the file name with and without file extension can be specified as fileID. With the "keepTrainingData" setting, you can decide whether the corresponding evaluated training data should also be deleted.',
   })
   deleteTaskResult(
     @Request() req: { sessionId: UUID },

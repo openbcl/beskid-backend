@@ -8,12 +8,8 @@ export class ModelService {
     return models.find((model) => model.name === modelName);
   }
 
-  findModelPartialByName(modelName: string) {
-    return this.toPartial(this.findModelByName(modelName))
-  }
-
   findModel(modelId: number) {
-    if (modelId < 0 || modelId > models.length) {
+    if (modelId <= 0 || modelId > models.length) {
       throw new NotFoundException();
     }
     return models.find((model) => model.id === modelId);
@@ -23,19 +19,17 @@ export class ModelService {
     return this.toPartial(this.findModel(modelId));
   }
 
-  findModels(fdsVersion?: string, experimentID?: string) {
-    return models.filter(
-      (model) =>
-        (!fdsVersion || model.fds.version === fdsVersion) &&
-        (!experimentID || !!model.experiments.find((experiment) => experiment.id === experimentID)),
-    );
+  findModels() {
+    return models.filter(model => !model.disabled);
   }
 
   toPartial(model: Model): ModelPartial {
     return {
       id: model.id,
       name: model.name,
-      fds: model.fds
+      fds: model.fds,
+      disabled: model.disabled,
+      hasTemplate: !!model.templatePath?.length
     }
   }
 }

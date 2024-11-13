@@ -4,9 +4,25 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
 import { Experiment, Model, ModelPartial } from '../model/model';
 import { dataDirectory, encoding } from '../config';
-import { IsNumber, IsUUID } from 'class-validator';
+import { IsEnum, IsNumber, IsUUID, registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
 import { ApiProperty, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
 import { Job } from '../queue/job';
+
+const IsTaskSetting = () => {
+  return (object: any, propertyName: string) =>
+    registerDecorator({
+      name: 'IsSetting',
+      target: object.constructor,
+      propertyName,
+      validator: {
+        validate(value: any, _args: ValidationArguments) {
+          return 'id' in value && typeof value.id === "string" &&
+          'resolution' in value && typeof value.resolution === "number" &&
+          'condition' in value && typeof value.condition === "number"
+        },
+      },
+    });
+}
 
 export enum TaskTraining {
   DISABLED = 'DISABLED',
@@ -61,7 +77,7 @@ export class TaskResult {
 
 export class TaskSetting extends IntersectionType(
   PickType(Experiment, [ 'id' ]),
-  PartialType(PickType(Experiment, [ 'name', 'conditionMU' ])),
+  PickType(PartialType(Experiment), [ 'name', 'conditionMU' ]),
   PickType(Model, ['resolution']),
 ) {
   @ApiProperty({ description: 'Experiment condition value' })
@@ -76,6 +92,7 @@ export class Task {
   })
   values: number[];
 
+  @IsTaskSetting()
   @ApiProperty({
     type: TaskSetting,
     description:
@@ -83,6 +100,7 @@ export class Task {
   })
   setting: TaskSetting;
 
+  @IsEnum(TaskTraining)
   @ApiProperty({
     enum: TaskTraining,
     description: 'The marker indicates whether training is enabled or not.',

@@ -17,12 +17,16 @@ export class Scale {
 export class Experiment {
   @ApiProperty({ description: 'Experiment id' })
   id: string;
+
   @ApiProperty({ description: 'Experiment name' })
   name: string;
+
   @ApiProperty({ type: Scale })
   scale: Scale;
+
   @ApiProperty({ description: 'Condition measurement unit' })
   conditionMU: string;
+
   @ApiProperty({ type: [Number], description: 'Conditions' })
   conditions: number[];
 }
@@ -37,23 +41,33 @@ export class Model {
   @ApiProperty({ description: 'AI model description' })
   description: string;
 
-  @ApiProperty({
-    type: Number,
-    description: 'Available resolution',
-  })
+  @ApiProperty({ type: Number, description: 'Available resolution' })
   resolution: number;
 
-  @ApiProperty({
-    type: [Experiment],
-    required: false,
-  })
+  @ApiProperty({ type: [Experiment] })
   experiments: Experiment[];
 
-  @ApiProperty({
-    type: FDS,
-    required: false,
-  })
+  @ApiProperty({ type: FDS })
   fds: FDS;
+
+  @ApiProperty({ type: Boolean, description: 'Indicates whether FDS template is available' })
+  hasTemplate: boolean;
+
+  templatePath?: string;
+
+  @ApiProperty({ type: Boolean, description: 'Disabled models are not available for new calculations.' })
+  disabled: boolean;
 }
 
-export class ModelPartial extends PickType(Model, ['id', 'name', 'fds']){}
+export class ModelDto extends PickType(Model, [
+  'id',
+  'name',
+  'description',
+  'resolution',
+  'experiments',
+  'fds',
+  'hasTemplate',
+  'disabled',
+] as const) {}
+
+export class ModelPartial extends PickType(Model, ['id', 'name', 'fds', 'hasTemplate', 'disabled']){}

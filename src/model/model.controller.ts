@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ModelService } from './model.service';
-import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Model } from './model';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Model, ModelDto } from './model';
 
 @ApiTags('AI Models')
 @ApiBearerAuth()
@@ -19,7 +19,7 @@ export class ModelController {
     description: 'Request a selected AI model.',
   })
   findModel(@Param('modelId') modelId: number) {
-    return this.modelService.findModel(modelId);
+    return toDto(this.modelService.findModel(modelId));
   }
 
   @Get()
@@ -27,23 +27,20 @@ export class ModelController {
     type: [Model],
     status: 200,
     description: 'Request all available AI models.',
+
   })
-  @ApiQuery({
-    name: "fdsVersion",
-    type: String,
-    description: "Filter models by FDS version (optional)",
-    required: false
-  })
-  @ApiQuery({
-    name: "experimentID",
-    type: String,
-    description: "Filter models by experiment (optional)",
-    required: false
-  })
-  findModels(
-    @Query('fdsVersion') fdsVersion?: string,
-    @Query('experimentID') experimentID?: string
-  ) {
-    return this.modelService.findModels(fdsVersion, experimentID?.toUpperCase());
+  findModels() {
+    return this.modelService.findModels().map(model => toDto(model));
   }
 }
+
+const toDto = (model: Model): ModelDto => ({
+  id: model.id,
+  name: model.name,
+  description: model.description,
+  resolution: model.resolution,
+  experiments: model.experiments,
+  fds: model.fds,
+  hasTemplate: model.hasTemplate,
+  disabled: model.disabled,
+});

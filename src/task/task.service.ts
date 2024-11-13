@@ -138,10 +138,10 @@ export class TaskService {
       conditionMU: rawExperiments[di[8]].conditionMU,
     }
     const results = readdirSync(taskDirectory)
-      .filter((name) => name.match(/output_.+?.json/))
+      .filter((name) => name.match(/result_.+?.json/))
       .map((filename) => {
         const rm = filename.match(
-          this.composedRegex(/output_/, timestampRegEx, /_(.+?).json/),
+          this.composedRegex(/result_/, timestampRegEx, /_model_(.+?).json/),
         );
         if (!rm) {
           Logger.error(
@@ -150,7 +150,7 @@ export class TaskService {
           );
           throw new InternalServerErrorException();
         }
-        const model = this.modelService.findModelPartialByName(rm[7]);
+        const model = this.modelService.findModelPartial(parseInt(rm[7]));
         return {
           filename,
           uriFile: `/v1/tasks/${taskId}/results/${filename}`,
@@ -231,7 +231,7 @@ export class TaskService {
       if (!existsSync(filepath)) {
         throw new NotFoundException();
       }
-      return new StreamableFile(createReadStream(filepath));
+      return new StreamableFile(createReadStream(filepath), { disposition: `attachment; filename="${fileId}"` });
     }
     // if filename does not contain extension: return filecontent
     const filepath = join(taskDirectory, fileId + extension);
@@ -244,6 +244,47 @@ export class TaskService {
       Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
+  }
+
+  findTaskResultTemplateData(
+    sessionId: UUID,
+    taskId: UUID,
+    fileId: string,
+  ): string {
+    const { taskDirectory } = this.findDirectories(sessionId, taskId);
+    if (fileId.endsWith(extension)) {
+      fileId = fileId.slice(0, -extension.length);
+    }
+    const filepath = join(taskDirectory, fileId + extension);
+    if (!existsSync(filepath)) {
+      throw new NotFoundException();
+    }
+    try {
+      const model = this.modelService.findModel(parseInt(fileId.split('_').at(-1)));
+      if (!model.hasTemplate) {
+        throw new UnprocessableEntityException()
+      }
+      let template = readFileSync(model.templatePath, encoding);
+      JSON.parse(readFileSync(filepath, encoding)).forEach((param: {id: string, name: string, value: number}) => 
+        template = template.replaceAll(`{{${param.id}}}`, param.value.toString())
+      );
+      return template;
+    } catch (err) {
+      Logger.error(err, 'TaskService');
+      throw new InternalServerErrorException();
+    }
+  }
+
+  findTaskResultTemplateFile(
+    sessionId: UUID,
+    taskId: UUID,
+    fileId: string,
+  ): StreamableFile {
+    if (fileId.endsWith(extension)) {
+      fileId = fileId.slice(0, -extension.length);
+    }
+    const template = this.findTaskResultTemplateData(sessionId, taskId, fileId);
+    return new StreamableFile(Buffer.from(template), { disposition: `attachment; filename="${fileId}.fds"` });
   }
 
   async deleteTaskResult(

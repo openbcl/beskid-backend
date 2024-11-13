@@ -1,8 +1,8 @@
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { join } from "path";
 import { InjectQueue, Processor, WorkerHost } from "@nestjs/bullmq";
-import { Job as BullJob, JobType, Queue, QueueEvents } from "bullmq";
-import { extension, redisConnection, redisPrefix } from '../config';
+import { Job as BullJob, JobType, Queue } from "bullmq";
+import { extension} from '../config';
 import { Task, TaskResult, TaskResultEvaluation } from "../task/task";
 import { ModelPartial } from "../model/model";
 import { Job, RedisJob } from "./job";
@@ -18,11 +18,6 @@ export class QueueService extends WorkerHost {
     process.env['scriptFile'] || 'test.py',
   );
 
-  private queueEvents: QueueEvents = new QueueEvents('job', {
-    connection: redisConnection(),
-    prefix: redisPrefix()
-  })
-
   constructor(@InjectQueue('job') private jobQueue: Queue) {
     super();
     //this.jobQueue.clean(0, 0);
@@ -32,19 +27,16 @@ export class QueueService extends WorkerHost {
     const data = new RedisJob(task, model);
     Logger.log(`APPEND job "${data.id}"`, 'TaskService');
     const bullJob: BullJob<RedisJob> = await this.jobQueue.add(data.id, data, {jobId: data.id});
-    try {
-      return await bullJob.waitUntilFinished(this.queueEvents, 2500);
-    } catch {
-      task.jobs = (await this.findJobsOfTask(bullJob.data.task.id));
-      const job = task.jobs.find(job => job.jobId === bullJob.data.id);
-      if (job.state === 'completed') {
+    task.jobs = (await this.findJobsOfTask(bullJob.data.task.id)).map(job => {
+      if (job.jobId === bullJob.data.id && job.state === 'completed') {
         job.state = 'active';
       }
-      return task.toDto();
-    }
+      return job
+    });
+    return task.toDto();
   }
 
-  async process(bullJob: BullJob<RedisJob>, _token?: string): Promise<any> {
+  async process(bullJob: BullJob<RedisJob>, _token?: string) {
     Logger.log(`PROCESS job "${bullJob.data.id}"`, 'TaskService');
     const task = new Task(
       bullJob.data.task.sessionId,
@@ -57,15 +49,15 @@ export class QueueService extends WorkerHost {
       bullJob.data.task.inputFilename
     )
     const date = new Date();
-    const outputFileName = `output_${task.timestamp(date)}_${bullJob.data.model.name}`;
+    const resultFileName = `result_${task.timestamp(date)}_model_${bullJob.data.model.id}`;
     if (this.script.endsWith('test.py')) {
       await new Promise((resolve) => setTimeout(resolve, Math.floor(10000 * Math.random())));
     }
-    execSync(`python ${this.script} ${outputFileName} ${bullJob.data.model.name} ${task.inputFilename}`, { cwd: task.directory });    
+    execSync(`python ${this.script} ${bullJob.data.model.name} ${task.setting.id} ${task.setting.condition} ${task.inputFilename} ${resultFileName}`, { cwd: task.directory });    
     const result = {
-      filename: outputFileName + extension,
-      uriFile: `/v1/tasks/${task.id}/results/${outputFileName + extension}`,
-      uriData: `/v1/tasks/${task.id}/results/${outputFileName}`,
+      filename: resultFileName + extension,
+      uriFile: `/v1/tasks/${task.id}/results/${resultFileName + extension}`,
+      uriData: `/v1/tasks/${task.id}/results/${resultFileName}`,
       date,
       model: bullJob.data.model,
       evaluation: TaskResultEvaluation.NEUTRAL,
