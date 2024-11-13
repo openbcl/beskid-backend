@@ -151,7 +151,6 @@ export class TaskController {
 
   @Get('/:taskId/results/:fileId/template-file')
   @ApiResponse({
-    type: StreamableFile,
     status: 200,
     description:
       'Converts results of a task into FDS template file.',

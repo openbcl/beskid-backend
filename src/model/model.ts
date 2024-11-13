@@ -1,4 +1,4 @@
-import { ApiProperty, PickType, ApiHideProperty } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 
 export class FDS {
   @ApiProperty({ description: 'FDS Version' })
@@ -17,12 +17,16 @@ export class Scale {
 export class Experiment {
   @ApiProperty({ description: 'Experiment id' })
   id: string;
+
   @ApiProperty({ description: 'Experiment name' })
   name: string;
+
   @ApiProperty({ type: Scale })
   scale: Scale;
+
   @ApiProperty({ description: 'Condition measurement unit' })
   conditionMU: string;
+
   @ApiProperty({ type: [Number], description: 'Conditions' })
   conditions: number[];
 }
