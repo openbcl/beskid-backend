@@ -231,7 +231,7 @@ export class TaskService {
       if (!existsSync(filepath)) {
         throw new NotFoundException();
       }
-      return new StreamableFile(createReadStream(filepath));
+      return new StreamableFile(createReadStream(filepath), { disposition: `attachment; filename="${fileId}"` });
     }
     // if filename does not contain extension: return filecontent
     const filepath = join(taskDirectory, fileId + extension);
@@ -244,6 +244,47 @@ export class TaskService {
       Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
+  }
+
+  findTaskResultTemplateData(
+    sessionId: UUID,
+    taskId: UUID,
+    fileId: string,
+  ): string {
+    const { taskDirectory } = this.findDirectories(sessionId, taskId);
+    if (fileId.endsWith(extension)) {
+      fileId = fileId.slice(0, -extension.length);
+    }
+    const filepath = join(taskDirectory, fileId + extension);
+    if (!existsSync(filepath)) {
+      throw new NotFoundException();
+    }
+    try {
+      const model = this.modelService.findModel(parseInt(fileId.split('_').at(-1)));
+      if (!model.hasTemplate) {
+        throw new UnprocessableEntityException()
+      }
+      let template = readFileSync(model.templatePath, encoding);
+      JSON.parse(readFileSync(filepath, encoding)).forEach((param: {id: string, name: string, value: number}) => 
+        template = template.replaceAll(`{{${param.id}}}`, param.value.toString())
+      );
+      return template;
+    } catch (err) {
+      Logger.error(err, 'TaskService');
+      throw new InternalServerErrorException();
+    }
+  }
+
+  findTaskResultTemplateFile(
+    sessionId: UUID,
+    taskId: UUID,
+    fileId: string,
+  ): StreamableFile {
+    if (fileId.endsWith(extension)) {
+      fileId = fileId.slice(0, -extension.length);
+    }
+    const template = this.findTaskResultTemplateData(sessionId, taskId, fileId);
+    return new StreamableFile(Buffer.from(template), { disposition: `attachment; filename="${fileId}.fds"` });
   }
 
   async deleteTaskResult(

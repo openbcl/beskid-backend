@@ -10,6 +10,7 @@
             { "name" : "MCC", "conditions": [10] },
             { "name" : "CONE", "conditions": [25] }
         ],
+        "template": "template.fds",
         "disabled": false
     },
     {
@@ -23,6 +24,7 @@
             { "name" : "MCC", "conditions": [15] },
             { "name" : "CONE", "conditions": [30] }
         ],
+        "template": "template.fds",
         "disabled": false
     }
 ]

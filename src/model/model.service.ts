@@ -9,7 +9,7 @@ export class ModelService {
   }
 
   findModel(modelId: number) {
-    if (modelId < 0 || modelId > models.length) {
+    if (modelId <= 0 || modelId > models.length) {
       throw new NotFoundException();
     }
     return models.find((model) => model.id === modelId);
@@ -28,7 +28,8 @@ export class ModelService {
       id: model.id,
       name: model.name,
       fds: model.fds,
-      disabled: model.disabled
+      disabled: model.disabled,
+      hasTemplate: !!model.templatePath?.length
     }
   }
 }
