@@ -3,12 +3,12 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Post,
   Put,
   Query,
   Request,
-  StreamableFile,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
@@ -113,6 +113,7 @@ export class TaskController {
   }
 
   @Get('/:taskId/results/:fileId')
+  @Header('Access-Control-Expose-Headers', 'Content-Disposition')
   @ApiResponse({
     status: 200,
     description:
@@ -150,6 +151,7 @@ export class TaskController {
   }
 
   @Get('/:taskId/results/:fileId/template-file')
+  @Header('Access-Control-Expose-Headers', 'Content-Disposition')
   @ApiResponse({
     status: 200,
     description:
