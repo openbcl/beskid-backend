@@ -10,7 +10,7 @@ import {
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { CreateTask, Task, TaskSetting, TaskDto, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTask, Task, TaskSetting, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
 import { join } from 'path';
 import {
   existsSync,
@@ -50,11 +50,11 @@ export class TaskService {
       `Created new task "${task.id}" for session "${sessionId}"`,
       'TaskService',
     );
-    return task.toDto();
+    return task;
   }
 
   editTask(sessionId: UUID, taskId: UUID, training: TaskTraining) {
-    const task = this.findTask(sessionId, taskId, false) as Task;
+    const task = this.findTask(sessionId, taskId) as Task;
     renameSync(
       task.directory,
       join(
@@ -91,7 +91,7 @@ export class TaskService {
         return result;
       });
     }
-    return task.toDto();
+    return task;
   }
 
   async deleteTask(sessionId: UUID, taskId: UUID) {
@@ -114,7 +114,7 @@ export class TaskService {
     }
   }
 
-  findTask(sessionId: UUID, taskId: UUID, toDto = true, parseValues = false) {
+  findTask(sessionId: UUID, taskId: UUID, parseValues = false) {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
     const { taskDirectory, training } = this.findDirectories(sessionId, taskId);
     const inputFilename = readdirSync(taskDirectory).find((name) =>
@@ -196,7 +196,7 @@ export class TaskService {
       date,
       results,
     );
-    return toDto ? task.toDto() : task;
+    return task;
   }
 
   findTasks(sessionId: UUID) {
@@ -212,7 +212,7 @@ export class TaskService {
 
   runTask(sessionId: UUID, taskId: UUID, modelId: number) {
     const model = this.modelService.findModel(modelId);
-    const task = this.findTask(sessionId, taskId, false) as Task;
+    const task = this.findTask(sessionId, taskId) as Task;
     if (!model.experiments.find(experiment => experiment.id === task.setting.id && experiment.conditions.find(condition => condition === task.setting.condition))) {
       throw new UnprocessableEntityException();
     }
@@ -292,8 +292,8 @@ export class TaskService {
     taskId: UUID,
     fileId: string,
     keepTrainingDataData: boolean,
-  ): Promise<TaskDto> {
-    const task = this.findTask(sessionId, taskId, false, false) as Task;
+  ): Promise<Task> {
+    const task = this.findTask(sessionId, taskId) as Task;
     const filename = fileId.endsWith(extension) ? fileId : fileId + extension;
     const filepath = join(task.directory, filename);
     const result = task.results.find((result) => result.filename === filename);
@@ -310,10 +310,8 @@ export class TaskService {
       this.cleanupEvaluation(trainingTaskDirectory, result.evaluation, result);
     }
     await this.queueService.deleteJobByFilename(sessionId, filename);
-    return {
-      ...task.toDto(),
-      results: task.results.filter((r) => r.filename !== result.filename),
-    };
+    task.results = task.results.filter((r) => r.filename !== result.filename);
+    return task;
   }
 
   cleanupEvaluation = (
@@ -342,7 +340,7 @@ export class TaskService {
     fileId: string,
     evalutation: TaskResultEvaluation,
   ) {
-    const task = this.findTask(sessionId, taskId, false) as Task;
+    const task = this.findTask(sessionId, taskId) as Task;
     if (task.training === TaskTraining.DISABLED) {
       throw new ForbiddenException();
     }
@@ -421,7 +419,7 @@ export class TaskService {
       );
       return evaluatedResult;
     });
-    return task.toDto();
+    return task;
   }
 
   private parseInputfile = (filepath: string): number[] => {

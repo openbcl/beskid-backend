@@ -1,4 +1,5 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
+import { Exclude } from 'class-transformer';
 
 export class FDS {
   @ApiProperty({ description: 'FDS Version' })
@@ -53,21 +54,15 @@ export class Model {
   @ApiProperty({ type: Boolean, description: 'Indicates whether FDS template is available' })
   hasTemplate: boolean;
 
+  @Exclude()
   templatePath?: string;
 
   @ApiProperty({ type: Boolean, description: 'Disabled models are not available for new calculations.' })
   disabled: boolean;
-}
 
-export class ModelDto extends PickType(Model, [
-  'id',
-  'name',
-  'description',
-  'resolution',
-  'experiments',
-  'fds',
-  'hasTemplate',
-  'disabled',
-] as const) {}
+  constructor(partial: Partial<Model>) {
+    Object.assign(this, partial);
+  }
+}
 
 export class ModelPartial extends PickType(Model, ['id', 'name', 'fds', 'hasTemplate', 'disabled']){}

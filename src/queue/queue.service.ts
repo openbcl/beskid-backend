@@ -33,7 +33,7 @@ export class QueueService extends WorkerHost {
       }
       return job
     });
-    return task.toDto();
+    return task;
   }
 
   async process(bullJob: BullJob<RedisJob>, _token?: string) {
@@ -72,7 +72,7 @@ export class QueueService extends WorkerHost {
     });
     task.jobs = await this.findJobsOfTask(bullJob.data.task.id, bullJob.id as UUID);
     Logger.log(`FINISHED job "${bullJob.data.id}"`, 'TaskService');
-    return task.toDto();
+    return task;
   }
   
   async findJobs(sessionId: UUID, types?: JobType[]) {

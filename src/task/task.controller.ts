@@ -61,7 +61,7 @@ export class TaskController {
     description: 'Request a selected task (input values included).',
   })
   findTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam) {
-    return this.tasksService.findTask(req.sessionId, params.taskId, true, true);
+    return this.tasksService.findTask(req.sessionId, params.taskId, true);
   }
 
   @Put(':taskId')

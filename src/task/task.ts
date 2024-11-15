@@ -7,6 +7,7 @@ import { dataDirectory, encoding } from '../config';
 import { IsEnum, IsNumber, IsUUID, registerDecorator, ValidationArguments, ValidationOptions } from 'class-validator';
 import { ApiProperty, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
 import { Job } from '../queue/job';
+import { Exclude } from 'class-transformer';
 
 const IsTaskSetting = () => {
   return (object: any, propertyName: string) =>
@@ -130,11 +131,17 @@ export class Task {
   })
   jobs?: Job[];
 
+  @Exclude()
+  sessionId: UUID;
+
+  @Exclude()
   directory: string;
+
+  @Exclude()
   inputFilename: string;
 
   constructor(
-    public sessionId: string,
+    sessionId: UUID,
     values: number[],
     setting: TaskSetting,
     training = TaskTraining.DISABLED,
@@ -143,20 +150,18 @@ export class Task {
     results: TaskResult[] = [],
     inputFilename?: string,
   ) {
+    this.sessionId = sessionId;
     this.values = values;
     this.setting = setting;
     this.training = training;
     this.id = id;
     this.date = date;
     this.results = results;
-    this.directory = join(
-      dataDirectory,
-      this.sessionId,
-      `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`,
-    );
+    this.directory = join(dataDirectory, sessionId, `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`);
     this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.setting.resolution}_${this.setting.id}_${this.setting.condition}.txt`;
   }
 
+  @Exclude()
   timestamp = (date: Date) => {
     return date
       .toISOString()
@@ -166,6 +171,7 @@ export class Task {
       .slice(0, -4);
   };
 
+  @Exclude()
   saveInputfile = () => {
     if (!existsSync(this.directory)) {
       mkdirSync(this.directory, { recursive: true });
@@ -176,27 +182,7 @@ export class Task {
       { encoding },
     );
   };
-
-  toDto = (): TaskDto => ({
-    id: this.id,
-    values: this.values,
-    setting: this.setting,
-    training: this.training,
-    date: this.date,
-    results: this.results,
-    jobs: this.jobs,
-  });
 }
-
-export class TaskDto extends PickType(Task, [
-  'id',
-  'values',
-  'setting',
-  'training',
-  'date',
-  'results',
-  'jobs',
-] as const) {}
 
 export class CreateTask extends PickType(Task, [
   'values',
