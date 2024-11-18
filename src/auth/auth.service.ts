@@ -37,11 +37,7 @@ export class AuthService {
     if (!existsSync(sessionDirectory)) {
       mkdirSync(sessionDirectory, { recursive: true });
     }
-    writeFileSync(
-      join(sessionDirectory, expirationFile),
-      `${decoded.exp * 1000}`,
-      encoding,
-    );
+    writeFileSync(join(sessionDirectory, expirationFile), `${decoded.exp * 1000}`, encoding);
     return { token, sessionId };
   }
 }

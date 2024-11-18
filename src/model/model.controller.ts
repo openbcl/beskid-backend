@@ -27,7 +27,6 @@ export class ModelController {
     type: [Model],
     status: 200,
     description: 'Request all available AI models.',
-
   })
   findModels() {
     return this.modelService.findModels();

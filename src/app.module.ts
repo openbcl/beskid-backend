@@ -17,26 +17,20 @@ import { QueueController } from './queue/queue.controller';
 import { QueueService } from './queue/queue.service';
 import { ConnectionOptions } from 'bullmq';
 
-
-const prefix = () => process.env['redisConfigKey'] || 'beskid';
+const prefix = () => process.env['redisConfigKey'] || 'beskid';
 
 const connection = (): ConnectionOptions => {
   const password = process.env['redisPW'];
   const { ca, cert, key } = {
     ca: process.env['redisCA'],
     cert: process.env['redisClientCert'],
-    key: process.env['redisClientKey']
+    key: process.env['redisClientKey'],
   };
   return {
     host: process.env['redisHost'],
     port: parseInt(process.env['redisPort']) || undefined,
-    ...(!!ca?.length ? {
-      tls: {
-        ca,
-        ...(!!cert?.length && !!key?.length ? { cert, key } : {})
-      }
-    } : {}),
-    ...(!cert?.length || !key?.length && !!password?.length ? { password } : {}),
+    ...(!!ca?.length ? { tls: { ca, ...(!!cert?.length && !!key?.length ? { cert, key } : {}) } } : {}),
+    ...(!cert?.length || (!key?.length && !!password?.length) ? { password } : {}),
   };
 };
 

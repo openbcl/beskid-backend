@@ -34,7 +34,7 @@ export const models: Model[] = rawModels.map((model) => {
       ...rawExperiments[experiment.name],
       scale: rawScales[rawExperiments[experiment.name].scale],
       conditions: experiment.conditions,
-      conditionMU: rawExperiments[experiment.name].conditionMU
+      conditionMU: rawExperiments[experiment.name].conditionMU,
     })),
     hasTemplate,
     templatePath: hasTemplate ? templatePath : undefined,

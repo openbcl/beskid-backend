@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { Observable } from 'rxjs';
@@ -20,16 +15,11 @@ export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
-    private reflector: Reflector,
+    private reflector: Reflector
   ) {}
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [context.getHandler(), context.getClass()]);
     if (isPublic) {
       return true;
     }
@@ -46,7 +36,7 @@ export class AuthGuard implements CanActivate {
         if (!existsSync(sessionDirectory)) {
           mkdirSync(sessionDirectory, { recursive: true });
         }
-        writeFileSync( expirationFilePath, `${payload.exp * 1000}`, encoding);
+        writeFileSync(expirationFilePath, `${payload.exp * 1000}`, encoding);
       }
       request['sessionId'] = payload.sessionId;
     } catch {

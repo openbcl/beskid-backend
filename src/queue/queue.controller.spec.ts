@@ -14,8 +14,8 @@ describe('QueueController', () => {
         QueueService,
         {
           provide: getQueueToken('job'),
-          useValue: QueueMock
-        }
+          useValue: QueueMock,
+        },
       ],
     }).compile();
 
