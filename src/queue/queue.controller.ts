@@ -1,9 +1,9 @@
-import { Controller, Get, Param, Query, Request } from "@nestjs/common";
-import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { QueueService } from "./queue.service";
-import { JobIdParam, Job } from "./job";
-import { UUID } from "crypto";
-import { JobType } from "bullmq";
+import { Controller, Get, Param, Query, Request } from '@nestjs/common';
+import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { QueueService } from './queue.service';
+import { JobIdParam, Job } from './job';
+import { UUID } from 'crypto';
+import { JobType } from 'bullmq';
 
 @ApiTags('Job Queue')
 @ApiBearerAuth()
@@ -21,15 +21,12 @@ export class QueueController {
     description: 'Request all jobs in queue.',
   })
   @ApiQuery({
-    name: "types",
+    name: 'types',
     type: [String],
-    description: "Filter jobs by type (job states)",
-    required: false
+    description: 'Filter jobs by type (job states)',
+    required: false,
   })
-  findJobs(
-    @Request() req: { sessionId: UUID },
-    @Query('types') types?: [JobType]
-  ) {
+  findJobs(@Request() req: { sessionId: UUID }, @Query('types') types?: [JobType]) {
     return this.queueService.findJobs(req.sessionId, types);
   }
 

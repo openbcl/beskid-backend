@@ -11,4 +11,5 @@ FROM ghcr.io/openbcl/beskid-backend:base AS production
 COPY --from=build /usr/src/app/node_modules /app/node_modules
 COPY --from=build /usr/src/app/dist /app/dist
 COPY --from=build /usr/src/app/python /app/python
+COPY --from=build /usr/src/app/templates /home/pn/templates
 CMD [ "node", "/app/dist/main.js" ]

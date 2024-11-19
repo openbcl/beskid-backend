@@ -13,11 +13,13 @@ describe('TaskController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [TaskController],
       providers: [
-        TaskService,  ModelService, QueueService,
+        TaskService,
+        ModelService,
+        QueueService,
         {
           provide: getQueueToken('job'),
-          useValue: QueueMock
-        }
+          useValue: QueueMock,
+        },
       ],
     }).compile();
 

@@ -20,7 +20,7 @@ export class ModelService {
   }
 
   findModels() {
-    return models.filter(model => !model.disabled);
+    return models.filter((model) => !model.disabled);
   }
 
   toPartial(model: Model): ModelPartial {

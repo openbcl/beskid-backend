@@ -11,7 +11,9 @@ describe('TaskService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        TaskService, ModelService, QueueService,
+        TaskService,
+        ModelService,
+        QueueService,
         {
           provide: getQueueToken('job'),
           useValue: QueueMock

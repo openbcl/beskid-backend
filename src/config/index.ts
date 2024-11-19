@@ -20,7 +20,7 @@ export const templateDirectory = resolve('templates');
 export const models: Model[] = rawModels.map((model) => {
   const templatePath = join(templateDirectory, model.template);
   const hasTemplate = !!model.template?.length && existsSync(templatePath);
-  return {
+  return new Model({
     id: model.id,
     description: model.description,
     name: model.name,
@@ -34,10 +34,10 @@ export const models: Model[] = rawModels.map((model) => {
       ...rawExperiments[experiment.name],
       scale: rawScales[rawExperiments[experiment.name].scale],
       conditions: experiment.conditions,
-      conditionMU: rawExperiments[experiment.name].conditionMU
+      conditionMU: rawExperiments[experiment.name].conditionMU,
     })),
     hasTemplate,
     templatePath: hasTemplate ? templatePath : undefined,
     disabled: model.disabled,
-  }
+  });
 });

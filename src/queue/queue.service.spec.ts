@@ -12,8 +12,8 @@ describe('TaskService', () => {
         QueueService,
         {
           provide: getQueueToken('job'),
-          useValue: QueueMock
-        }
+          useValue: QueueMock,
+        },
       ],
     }).compile();
 

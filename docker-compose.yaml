@@ -15,9 +15,5 @@ services:
     environment:
       - tokenExpirationTime=7d
       - tokenSecret=abc123
-      - scriptFile=
       - scriptDir=/app/python
       - redisHost=redis-db
-      - redisPort=
-      - redisPW=
-      - redisConfigKey=

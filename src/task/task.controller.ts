@@ -1,26 +1,8 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-  Put,
-  Query,
-  Request,
-  StreamableFile,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Header, Param, Post, Put, Query, Request } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import {
-  CreateTask,
-  KeepTrainingData,
-  Task,
-  TaskIdParam,
-  TaskResultEvaluation,
-  TaskTraining,
-} from './task';
+import { CreateTask, KeepTrainingData, Task, TaskIdParam, TaskResultEvaluation, TaskTraining } from './task';
 
 @ApiTags('Manage Tasks')
 @ApiBearerAuth()
@@ -37,10 +19,7 @@ export class TaskController {
     status: 201,
     description: 'Upload input values for new task.',
   })
-  addTask(
-    @Request() req: { sessionId: UUID },
-    @Body() createTask: CreateTask,
-  ) {
+  addTask(@Request() req: { sessionId: UUID }, @Body() createTask: CreateTask) {
     return this.tasksService.addTask(req.sessionId, createTask);
   }
 
@@ -61,35 +40,26 @@ export class TaskController {
     description: 'Request a selected task (input values included).',
   })
   findTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam) {
-    return this.tasksService.findTask(req.sessionId, params.taskId, true, true);
+    return this.tasksService.findTask(req.sessionId, params.taskId, true);
   }
 
   @Put(':taskId')
   @ApiResponse({
     type: Task,
     status: 200,
-    description:
-      'Enable or disbale training for a selected task. If the training was previously enabled, any analysed training data will be deleted.',
+    description: 'Enable or disbale training for a selected task. If the training was previously enabled, any analysed training data will be deleted.',
   })
   @ApiQuery({ name: 'training', enum: TaskTraining })
-  editTask(
-    @Request() req: { sessionId: UUID },
-    @Param() params: TaskIdParam,
-    @Query('training') training: TaskTraining,
-  ) {
+  editTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Query('training') training: TaskTraining) {
     return this.tasksService.editTask(req.sessionId, params.taskId, training);
   }
 
   @Delete(':taskId')
   @ApiResponse({
     status: 200,
-    description:
-      'Delete a selected task and all usage data. If the training was previously enabled, the analysed training data is retained.',
+    description: 'Delete a selected task and all usage data. If the training was previously enabled, the analysed training data is retained.',
   })
-  deleteTask(
-    @Request() req: { sessionId: UUID },
-    @Param() params: TaskIdParam,
-  ) {
+  deleteTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam) {
     return this.tasksService.deleteTask(req.sessionId, params.taskId);
   }
 
@@ -97,74 +67,41 @@ export class TaskController {
   @ApiResponse({
     type: Task,
     status: 201,
-    description:
-      'Start a selected task by selecting an AI model and resolution.',
+    description: 'Start a selected task by selecting an AI model and resolution.',
   })
-  runTask(
-    @Request() req: { sessionId: UUID },
-    @Param() params: TaskIdParam,
-    @Param('modelId') modelId: number,
-  ) {
-    return this.tasksService.runTask(
-      req.sessionId,
-      params.taskId,
-      modelId,
-    );
+  runTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Param('modelId') modelId: number) {
+    return this.tasksService.runTask(req.sessionId, params.taskId, modelId);
   }
 
   @Get('/:taskId/results/:fileId')
+  @Header('Access-Control-Expose-Headers', 'Content-Disposition')
   @ApiResponse({
     status: 200,
     description:
       'Retrieve results of a task. If you specify the filename including its extension as fileId, the results file is provided as a download. If you only specify the filename without its extension, the content of the file is returned in JSON format.',
   })
-  findTaskResult(
-    @Request() req: { sessionId: UUID },
-    @Param() params: TaskIdParam,
-    @Param('fileId') fileId: string,
-  ) {
-    return this.tasksService.findTaskResult(
-      req.sessionId,
-      params.taskId,
-      fileId,
-    );
+  findTaskResult(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Param('fileId') fileId: string) {
+    return this.tasksService.findTaskResult(req.sessionId, params.taskId, fileId);
   }
 
   @Get('/:taskId/results/:fileId/template-data')
   @ApiResponse({
     type: String,
     status: 200,
-    description:
-      'Converts results of a task into FDS plaintext template.',
+    description: 'Converts results of a task into FDS plaintext template.',
   })
-  findTaskResultTemplateData(
-    @Request() req: { sessionId: UUID },
-    @Param() params: TaskIdParam,
-    @Param('fileId') fileId: string,
-  ) {
-    return this.tasksService.findTaskResultTemplateData(
-      req.sessionId,
-      params.taskId,
-      fileId,
-    );
+  findTaskResultTemplateData(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Param('fileId') fileId: string) {
+    return this.tasksService.findTaskResultTemplateData(req.sessionId, params.taskId, fileId);
   }
 
   @Get('/:taskId/results/:fileId/template-file')
+  @Header('Access-Control-Expose-Headers', 'Content-Disposition')
   @ApiResponse({
     status: 200,
-    description:
-      'Converts results of a task into FDS template file.',
+    description: 'Converts results of a task into FDS template file.',
   })
-  findTaskResultTemplateFile(
-    @Request() req: { sessionId: UUID },
-    @Param() params: TaskIdParam,
-    @Param('fileId') fileId: string,
-  ) {
-    return this.tasksService.findTaskResultTemplateFile(
-      req.sessionId,
-      params.taskId,
-      fileId,
-    );
+  findTaskResultTemplateFile(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Param('fileId') fileId: string) {
+    return this.tasksService.findTaskResultTemplateFile(req.sessionId, params.taskId, fileId);
   }
 
   @Put('/:taskId/results/:fileId')
@@ -179,14 +116,9 @@ export class TaskController {
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,
     @Param('fileId') fileId: string,
-    @Query('evaluation') evaluation: TaskResultEvaluation,
+    @Query('evaluation') evaluation: TaskResultEvaluation
   ) {
-    return this.tasksService.evaluateTaskResult(
-      req.sessionId,
-      params.taskId,
-      fileId,
-      evaluation,
-    );
+    return this.tasksService.evaluateTaskResult(req.sessionId, params.taskId, fileId, evaluation);
   }
 
   @Delete('/:taskId/results/:fileId')
@@ -200,13 +132,8 @@ export class TaskController {
     @Request() req: { sessionId: UUID },
     @Param() params: TaskIdParam,
     @Param('fileId') fileId: string,
-    @Query('keepTrainingData') keepTrainingData: KeepTrainingData,
+    @Query('keepTrainingData') keepTrainingData: KeepTrainingData
   ) {
-    return this.tasksService.deleteTaskResult(
-      req.sessionId,
-      params.taskId,
-      fileId,
-      keepTrainingData === KeepTrainingData.TRUE,
-    );
+    return this.tasksService.deleteTaskResult(req.sessionId, params.taskId, fileId, keepTrainingData === KeepTrainingData.TRUE);
   }
 }
