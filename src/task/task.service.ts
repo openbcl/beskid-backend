@@ -29,7 +29,12 @@ export class TaskService {
   ) {}
 
   addTask(sessionId: UUID, createTask: CreateTask) {
-    const task = new Task(sessionId, createTask.values, createTask.setting, createTask.training);
+    const setting: TaskSetting = {
+      ...createTask.setting,
+      name: rawExperiments[createTask.setting.id].name,
+      conditionMU: rawExperiments[createTask.setting.id].conditionMU,
+    };
+    const task = new Task(sessionId, createTask.values, setting, createTask.training);
     task.saveInputfile();
     Logger.log(`Created new task "${task.id}" for session "${sessionId}"`, 'TaskService');
     return task;
