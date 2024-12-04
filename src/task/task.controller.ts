@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Header, Param, Post, Put, Query, Request
 import { TaskService } from './task.service';
 import { UUID } from 'crypto';
 import { ApiBearerAuth, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateTask, KeepTrainingData, Task, TaskIdParam, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTask, KeepTrainingData, Task, TaskIdParam, TaskResultEvaluation } from './task';
 
 @ApiTags('Manage Tasks')
 @ApiBearerAuth()
@@ -43,21 +43,10 @@ export class TaskController {
     return this.tasksService.findTask(req.sessionId, params.taskId, true);
   }
 
-  @Put(':taskId')
-  @ApiResponse({
-    type: Task,
-    status: 200,
-    description: 'Enable or disbale training for a selected task. If the training was previously enabled, any analysed training data will be deleted.',
-  })
-  @ApiQuery({ name: 'training', enum: TaskTraining })
-  editTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Query('training') training: TaskTraining) {
-    return this.tasksService.editTask(req.sessionId, params.taskId, training);
-  }
-
   @Delete(':taskId')
   @ApiResponse({
     status: 200,
-    description: 'Delete a selected task and all usage data. If the training was previously enabled, the analysed training data is retained.',
+    description: 'Delete a selected task and all usage data. Analysed training data is retained.',
   })
   deleteTask(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam) {
     return this.tasksService.deleteTask(req.sessionId, params.taskId);
@@ -110,7 +99,7 @@ export class TaskController {
     type: Task,
     status: 200,
     description:
-      'Evaluate a result of a task where training is enabled. Both the file name with and without file extension can be specified as fileID. If you select "POSITIVE", you are telling the AI system that everything was done correctly. If you select "NEGATIVE", you are telling the AI system that something went wrong. If you select "NEUTRAL", the result will no longer be passed on to the AI system.',
+      'Evaluate a result of a task. Both the file name with and without file extension can be specified as fileID. If you select "POSITIVE", you are telling the AI system that everything was done correctly. If you select "NEGATIVE", you are telling the AI system that something went wrong. If you select "NEUTRAL", the result will no longer be passed on to the AI system.',
   })
   evaluateTaskResult(
     @Request() req: { sessionId: UUID },
