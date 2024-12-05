@@ -151,7 +151,7 @@ export class TaskService {
     }
   }
 
-  findTaskResultTemplateData(sessionId: UUID, taskId: UUID, fileId: string): string {
+  findTaskResultTemplateData(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition: number): string {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     if (fileId.endsWith(extension)) {
       fileId = fileId.slice(0, -extension.length);
@@ -162,26 +162,27 @@ export class TaskService {
     }
     try {
       const model = this.modelService.findModel(parseInt(fileId.split('_').at(-1)));
-      if (!model.hasTemplate) {
+      if (!model.templates.length) {
         throw new UnprocessableEntityException();
       }
-      let template = readFileSync(model.templatePath, encoding);
+      const template = model.templates?.find(template => template.experimentId === experimentId && template.condition === condition);
+      if (!template) {
+        throw new NotFoundException();
+      }
+      let plaintext = readFileSync(template.templatePath, encoding);
       JSON.parse(readFileSync(filepath, encoding)).forEach(
-        (param: { id: string; name: string; value: number }) => (template = template.replaceAll(`{{${param.id}}}`, param.value.toString()))
+        (param: { id: string; name: string; value: number }) => (plaintext = plaintext.replaceAll(`{{${param.id}}}`, param.value.toString()))
       );
-      return template;
+      return plaintext;
     } catch (err) {
       Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
   }
 
-  findTaskResultTemplateFile(sessionId: UUID, taskId: UUID, fileId: string): StreamableFile {
-    if (fileId.endsWith(extension)) {
-      fileId = fileId.slice(0, -extension.length);
-    }
-    const template = this.findTaskResultTemplateData(sessionId, taskId, fileId);
-    return new StreamableFile(Buffer.from(template), { disposition: `attachment; filename="${fileId}.fds"` });
+  findTaskResultTemplateFile(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition: number): StreamableFile {
+    const template = this.findTaskResultTemplateData(sessionId, taskId, fileId, experimentId, condition);
+    return new StreamableFile(Buffer.from(template), { disposition: `attachment; filename="${fileId.endsWith(extension) ? fileId.slice(0, -extension.length) : fileId}_${experimentId}_${condition}.fds"` });
   }
 
   async deleteTaskResult(sessionId: UUID, taskId: UUID, fileId: string, keepTrainingDataData: boolean): Promise<Task> {

@@ -79,8 +79,14 @@ export class TaskController {
     status: 200,
     description: 'Converts results of a task into FDS plaintext template.',
   })
-  findTaskResultTemplateData(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Param('fileId') fileId: string) {
-    return this.tasksService.findTaskResultTemplateData(req.sessionId, params.taskId, fileId);
+  findTaskResultTemplateData(
+    @Request() req: { sessionId: UUID },
+    @Param() params: TaskIdParam,
+    @Param('fileId') fileId: string,
+    @Query('experimentId') experimentId: string,
+    @Query('condition') condition: number,
+  ) {
+    return this.tasksService.findTaskResultTemplateData(req.sessionId, params.taskId, fileId, experimentId, condition);
   }
 
   @Get('/:taskId/results/:fileId/template-file')
@@ -89,8 +95,14 @@ export class TaskController {
     status: 200,
     description: 'Converts results of a task into FDS template file.',
   })
-  findTaskResultTemplateFile(@Request() req: { sessionId: UUID }, @Param() params: TaskIdParam, @Param('fileId') fileId: string) {
-    return this.tasksService.findTaskResultTemplateFile(req.sessionId, params.taskId, fileId);
+  findTaskResultTemplateFile(
+    @Request() req: { sessionId: UUID },
+    @Param() params: TaskIdParam,
+    @Param('fileId') fileId: string,
+    @Query('experimentId') experimentId: string,
+    @Query('condition') condition: number
+  ) {
+    return this.tasksService.findTaskResultTemplateFile(req.sessionId, params.taskId, fileId, experimentId, condition);
   }
 
   @Put('/:taskId/results/:fileId')

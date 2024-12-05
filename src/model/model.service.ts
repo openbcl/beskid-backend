@@ -28,8 +28,7 @@ export class ModelService {
       id: model.id,
       name: model.name,
       fds: model.fds,
-      disabled: model.disabled,
-      hasTemplate: !!model.templatePath?.length
+      disabled: model.disabled
     }
   }
 }

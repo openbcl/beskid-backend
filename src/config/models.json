@@ -6,11 +6,27 @@
         "resolution": 100,
         "fds": "6.7.6",
         "experiments": [
-            { "name" : "TGA", "conditions": [5, 10] },
-            { "name" : "MCC", "conditions": [10] },
-            { "name" : "CONE", "conditions": [25] }
+            { "id" : "TGA", "conditions": [5, 10] },
+            { "id" : "MCC", "conditions": [10] },
+            { "id" : "CONE", "conditions": [25] }
         ],
-        "template": "template.fds",
+        "templates": [{
+            "file": "template.fds",
+            "experimentId": "TGA",
+            "experimentCondition": 5
+        }, {
+            "file": "template.fds",
+            "experimentId": "TGA",
+            "experimentCondition": 10
+        }, {
+            "file": "template.fds",
+            "experimentId": "MCC",
+            "experimentCondition": 10
+        }, {
+            "file": "template.fds",
+            "experimentId": "CONE",
+            "experimentCondition": 25
+        }],
         "disabled": false
     },
     {
@@ -20,11 +36,31 @@
         "resolution": 100,
         "fds": "6.9.1",
         "experiments": [
-            { "name" : "TGA", "conditions": [10, 20, 40] },
-            { "name" : "MCC", "conditions": [15] },
-            { "name" : "CONE", "conditions": [30] }
+            { "id" : "TGA", "conditions": [10, 20, 40] },
+            { "id" : "MCC", "conditions": [15] },
+            { "id" : "CONE", "conditions": [30] }
         ],
-        "template": "template.fds",
+        "templates": [{
+            "file": "template.fds",
+            "experimentId": "TGA",
+            "experimentCondition": 10
+        }, {
+            "file": "template.fds",
+            "experimentId": "TGA",
+            "experimentCondition": 20
+        }, {
+            "file": "template.fds",
+            "experimentId": "TGA",
+            "experimentCondition": 40
+        }, {
+            "file": "template.fds",
+            "experimentId": "MCC",
+            "experimentCondition": 15
+        }, {
+            "file": "template.fds",
+            "experimentId": "CONE",
+            "experimentCondition": 30
+        }],
         "disabled": false
     }
 ]
