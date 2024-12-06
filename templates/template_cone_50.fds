@@ -1,0 +1,236 @@
+&HEAD CHID='{name}' /
+
+
+&TIME T_END=500, WALL_INCREMENT=1, DT=1.0 /
+
+&DUMP NFRAMES=501 / 
+
+
+&MISC SIMULATION_MODE = 'LES',
+      TMPA            = 30 /
+
+
+
+##############################
+#### Computational Domain ####
+##############################
+
+&MESH ID  = 'Mesh',
+      IJK = 9,9,20
+      XB  = -0.15,0.15,-0.15,0.15,-0.066667,0.600000 /
+
+
+***** Open Vents ********************
+ 
+&VENT MB='XMIN', SURF_ID='OPEN' /
+&VENT MB='XMAX', SURF_ID='OPEN' /
+&VENT MB='YMIN', SURF_ID='OPEN' /
+&VENT MB='YMAX', SURF_ID='OPEN' /
+&VENT MB='ZMIN', SURF_ID='OPEN' /
+&VENT MB='ZMAX', SURF_ID='OPEN' /
+
+
+
+##################
+#### Reaction ####
+##################
+
+***** REAC Parameters ******************
+
+&SPEC ID='ETHYLENE'/
+
+
+&REAC FUEL       = 'ETHYLENE',
+      CO_YIELD   = {co_yield},
+      SOOT_YIELD = {soot_yield} /
+
+
+
+################
+#### Sample ####
+################
+
+***** Sample Surface ******************
+
+# Resolution: 3 by 3, 65 kW/m²
+# ---------------------------------------
+
+&SURF ID                      = 'Sample Flux Patch',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 50,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:1)          = 'TestMaterial',
+      MATL_ID(2,1:1)          = 'InsulationBoard',
+      MATL_MASS_FRACTION(1,1) = 1.0,
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+
+
+
+***** Sample Materials and Decomposition Reactions ******************
+
+&MATL ID                     = 'TestMaterial'
+      EMISSIVITY             = {emissivity},
+      REFERENCE_TEMPERATURE  = {reference_temperature},
+      ABSORPTION_COEFFICIENT = 10000.0,
+      SPECIFIC_HEAT_RAMP     = 'Material_spec_heat_ramp',
+      CONDUCTIVITY_RAMP      = 'Material_conductivity_ramp',
+      DENSITY                = {density},
+      N_REACTIONS            = 1,
+      PYROLYSIS_RANGE        = 100.0,
+      HEATING_RATE           = 60,
+      SPEC_ID                = 'ETHYLENE',
+      NU_SPEC                = {nu_spec},
+      MATL_ID                = 'Material Residue',
+      NU_MATL                = {nu_matl},
+      HEAT_OF_REACTION       = {heat_of_reaction} /
+
+
+&MATL ID             = 'Material Residue'
+      EMISSIVITY     =  {resi_emissivity},
+      DENSITY        =  2500.0,
+      CONDUCTIVITY   =  {resi_conductivity},
+      SPECIFIC_HEAT  =  {resi_spec_heat} /
+
+
+
+&RAMP ID='Material_spec_heat_ramp',
+      T=150., F={spec_heat_150} /
+&RAMP ID='Material_spec_heat_ramp',
+      T=500., F={spec_heat_500} /
+
+&RAMP ID='Material_conductivity_ramp',
+      T=150., F={conductivity_150} /
+&RAMP ID='Material_conductivity_ramp',
+      T=500., F={conductivity_500} /
+
+
+
+he backing material data is taken from Gasification data set in MaCFP git repo:
+https://github.com/MaCFP/matl-db/tree/c3a9fc03ef6dbe92ec655ad5fc35966daf968d7c/PMMA/Validation_Data/NIST_Gasification_Apparatus
+
+&MATL ID                 = 'InsulationBoard',
+      EMISSIVITY         = 0.95,
+      FYI                ='Kaowool PM Insulation board',
+      DENSITY            = 256.0,
+      CONDUCTIVITY_RAMP  = 'Cond_Kaowool_Board',
+      SPECIFIC_HEAT_RAMP = 'Spec_Heat_Kaowool_Board' /
+
+&RAMP ID='Cond_Kaowool_Board', T=  260.0, F=0.0576 /
+&RAMP ID='Cond_Kaowool_Board', T=  538.0, F=0.085 /
+&RAMP ID='Cond_Kaowool_Board', T=  816.0, F=0.125 /
+&RAMP ID='Cond_Kaowool_Board', T= 1093.0, F=0.183 /
+
+# Added extra point at 970C to make FDS use the RAMP.
+&RAMP ID='Spec_Heat_Kaowool_Board', T= 970., F=1.070  /
+&RAMP ID='Spec_Heat_Kaowool_Board', T= 980., F=1.070  /
+
+
+
+***** Geometry *******************
+
+*** Specimen ***
+&VENT SURF_ID = 'Sample Flux Patch',
+      XB = -0.05, 0.05, -0.05, 0.05, 0.0, 0.0 / 
+
+
+
+
+
+&OBST SURF_ID = 'INERT',
+      XB      = -0.05,0.05,-0.05,0.05,-0.026,0.0 / SampleHolder
+
+***********************Burning rate monitoring****************
+****************Devices to record MLR**************
+***********************Burning rate monitoring****************
+****************Devices to record MLR**************
+&DEVC ID='Sample_Mass_Loss_Rate',
+      XB=-0.033,-0.033,0
+      QUANTITY='MASS FLUX',
+      SPEC_ID='ETHYLENE'
+      IOR =3/
+
+&DEVC XBP=-0.033,-0.033,-0.033,0.033,0.015,0.015, QUANTITY='TEMPERATURE', ID='temp1', POINTS=3,
+      TIME_HISTORY=T /
+&DEVC XBP=0,0,-0.033,0.033,0.015,0.015, QUANTITY='TEMPERATURE', ID='temp2', POINTS=3,
+      TIME_HISTORY=T /
+&DEVC XBP=0.033,0.033,-0.033,0.033,0.015,0.015, QUANTITY='TEMPERATURE', ID='temp3', POINTS=3,
+      TIME_HISTORY=T /
+
+
+&DEVC XBP=-0.033,-0.033,-0.033,0.033,0.015,0.015, QUANTITY='WALL TEMPERATURE', ID='walltemp1', POINTS=3,
+      TIME_HISTORY=T,IOR=3 /
+&DEVC XBP=0,0,-0.033,0.033,0.015,0.015, QUANTITY='WALL TEMPERATURE', ID='walltemp2', POINTS=3,
+      TIME_HISTORY=T ,IOR=3/
+&DEVC XBP=0.033,0.033,-0.033,0.033,0.015,0.015, QUANTITY='WALL TEMPERATURE', ID='walltemp3', POINTS=3,
+      TIME_HISTORY=T ,IOR=3/
+
+&DEVC XBP=-0.033,-0.033,-0.033,0.033,0.015,0.015, QUANTITY='NET HEAT FLUX', ID='netheatflux1', POINTS=3,
+      TIME_HISTORY=T,IOR=3 /
+&DEVC XBP=0,0,-0.033,0.033,0.015,0.015, QUANTITY='NET HEAT FLUX', ID='netheatflux2', POINTS=3,
+      TIME_HISTORY=T ,IOR=3/
+&DEVC XBP=0.033,0.033,-0.033,0.033,0.015,0.015, QUANTITY='NET HEAT FLUX', ID='netheatflux3', POINTS=3,
+      TIME_HISTORY=T ,IOR=3/
+
+&DEVC XBP=-0.033,-0.033,-0.033,0.033,0.015,0.015, QUANTITY='MASS FLUX', ID='mflux1', POINTS=3,SPEC_ID='ETHYLENE',
+      TIME_HISTORY=T,IOR=3 /
+&DEVC XBP=0,0,-0.033,0.033,0.015,0.015, QUANTITY='MASS FLUX', ID='mflux2', POINTS=3,SPEC_ID='ETHYLENE', POINTS=3,
+      TIME_HISTORY=T ,IOR=3/
+&DEVC XBP=0.033,0.033,-0.033,0.033,0.015,0.015, QUANTITY='MASS FLUX', ID='mflux3', POINTS=3,SPEC_ID='ETHYLENE', POINTS=3,
+      TIME_HISTORY=T ,IOR=3/
+
+
+&DEVC ID = 'HRRPUV_01',
+QUANTITY = 'HRRPUV',
+XB=-0.0500,-0.0167,-0.0500,-0.0167,0.0000,0.0333 /
+
+&DEVC ID = 'HRRPUV_02',
+QUANTITY = 'HRRPUV',
+XB=-0.0500,-0.0167,-0.0167,0.0167,0.0000,0.0333 /
+
+&DEVC ID = 'HRRPUV_03',
+QUANTITY = 'HRRPUV',
+XB=-0.0500,-0.0167,0.0167,0.0500,0.0000,0.0333 /
+
+
+&DEVC ID = 'HRRPUV_04',
+QUANTITY = 'HRRPUV',
+XB=-0.0167,0.0167,-0.0500,-0.0167,0.0000,0.0333 /
+
+&DEVC ID = 'HRRPUV_05',
+QUANTITY = 'HRRPUV',
+XB=-0.0167,0.0167,-0.0167,0.0167,0.0000,0.0333/
+
+&DEVC ID = 'HRRPUV_06',
+QUANTITY = 'HRRPUV',
+XB=-0.0167,0.0167,0.0167,0.0500,0.0000,0.0333 /
+
+
+&DEVC ID = 'HRRPUV_07',
+QUANTITY = 'HRRPUV',
+XB=0.0167,0.0500,-0.0500,-0.0167,0.0000,0.0333 /
+
+&DEVC ID = 'HRRPUV_08',
+QUANTITY = 'HRRPUV',
+XB=0.0167,0.0500,-0.0167,0.0167,0.0000,0.0333 /
+
+&DEVC ID = 'HRRPUV_09',
+QUANTITY = 'HRRPUV',
+XB=0.0167,0.0500,0.0167,0.0500,0.0000,0.0333 /
+
+
+***** Slice File for HRRPUV ******************
+Cell centered
+
+#add devc as well : surface temp, net heat flux, mass flux ,wall temperature
+
+&SLCF PBZ=0.03, QUANTITY='HRRPUV', VECTOR=.FALSE., CELL_CENTERED=.TRUE. /
+&SLCF PBX = 0.00,QUANTITY= 'HRRPUV',CELL_CENTERED = .TRUE. /
+&SLCF PBX = 0.00,QUANTITY= 'TEMPERATURE',CELL_CENTERED = .TRUE. /
+
+&TAIL /

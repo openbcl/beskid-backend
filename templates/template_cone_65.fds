@@ -1,0 +1,494 @@
+&HEAD CHID='#CHID_Cone#',
+    TITLE='Simplified cone calorimeter simulation setup'  /
+
+3.33 cm cells
+&MESH ID  = 'Mesh',
+      IJK = 9,9,20
+      XB  = -0.15,0.15,-0.15,0.15,-0.066667,0.600000 /
+
+
+&TIME T_END=500, WALL_INCREMENT=1, DT=0.01 /
+&MISC SIMULATION_MODE = 'LES',
+      TMPA            = 30.850000000000023 /
+
+ RADI NUMBER_RADIATION_ANGLES = 1000,
+      TIME_STEP_INCREMENT     = 1,
+      ANGLE_INCREMENT         = 1 /
+
+
+
+&DUMP NFRAMES=501 /
+
+
+##################
+#### Reaction ####
+##################
+
+***** REAC Parameters ******************
+
+&SPEC ID='METHANE', LUMPED_COMPONENT_ONLY=.TRUE./
+&SPEC ID='ETHYLENE', LUMPED_COMPONENT_ONLY=.TRUE./
+&SPEC ID='CARBON DIOXIDE',LUMPED_COMPONENT_ONLY=.TRUE./
+ SPEC ID='WATER VAPOR',LUMPED_COMPONENT_ONLY=.FALSE./
+&SPEC ID='WATER VAPOR' /
+
+&SPEC ID='FuelMixture',
+      SPEC_ID(1)='METHANE', VOLUME_FRACTION(1)= 3.492907E-01,
+      SPEC_ID(2)='ETHYLENE', VOLUME_FRACTION(2)= 3.264179E-01,
+      SPEC_ID(3)='CARBON DIOXIDE',VOLUME_FRACTION(3)= 0.3242914007872762/
+
+# Soot yield: 0.022g/g; from 'Principles of Fire Behaviour, Second Edition',
+# James G. Quintiere, CRC Press 2017, New York, Table 8.1, p. 247
+&REAC FUEL='FuelMixture'
+      SOOT_YIELD = 0.022 /
+
+
+
+
+ ***** Open Vents ********************
+
+&VENT MB='XMIN', SURF_ID='OPEN' /
+&VENT MB='XMAX', SURF_ID='OPEN' /
+&VENT MB='YMIN', SURF_ID='OPEN' /
+&VENT MB='YMAX', SURF_ID='OPEN' /
+&VENT MB='ZMIN', SURF_ID='OPEN' /
+&VENT MB='ZMAX', SURF_ID='OPEN' /
+
+
+
+***** Materials ********************
+
+Layer divide used to describe which layers generate fuel and on which side
+they are emitted. It is just the number of layers which should emit on
+this side.
+
+
+
+# Resolution: 3 by 3
+# ---------------------------------------
+
+&SURF ID                      = 'PMMA Aalto Flux Patch A',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 64.25120884,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch B',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 65.65726737,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch C',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 64.28029836,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch D',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 65.53045573,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch E',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 64.68289675,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch F',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 65.58709487,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch G',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 64.2350549,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch H',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 65.58575937,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+&SURF ID                      = 'PMMA Aalto Flux Patch I',
+      RGB                     = 200,100,0,
+      EXTERNAL_FLUX           = 64.29146733,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:2)          = 0.006, 0.02,
+      MATL_ID(1,1:8)          = 'PMMA1', 'PMMA2', 'PMMA3', 'PMMA4', 'PMMA5', 'PMMA6', 'PMMA7', 'PMMA8'
+      MATL_ID(2,1:1)          = 'Backing'
+      MATL_MASS_FRACTION(1,1) = 0.7318991416477156
+      MATL_MASS_FRACTION(1,2) = 1.442641E-01
+      MATL_MASS_FRACTION(1,3) = 5.354817E-02
+      MATL_MASS_FRACTION(1,4) = 7.033428E-04
+      MATL_MASS_FRACTION(1,5) = 1.895260E-02
+      MATL_MASS_FRACTION(1,6) = 1.881593E-02
+      MATL_MASS_FRACTION(1,7) = 1.947912E-02
+      MATL_MASS_FRACTION(1,8) = 1.233755E-02
+      MATL_MASS_FRACTION(2,1) = 1.0 /
+
+
+
+# MaCFP PMMA Aalto
+# ---------------------------------------
+# IMP: PMMA_MCCTGA02_L1
+# Best Repetition: Repetition_264405
+# ---------------------------------------
+&MATL ID                     = 'PMMA1'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 381.3443746649532
+      PYROLYSIS_RANGE        = 120.7440564865074
+      HEATING_RATE           = 60
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 10.385814949691056 /
+
+&MATL ID                     = 'PMMA2'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 408.3883709946584
+      PYROLYSIS_RANGE        = 85.96187121041275
+      HEATING_RATE           = 60
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 10.128169644595395 /
+
+&MATL ID                     = 'PMMA3'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 428.2540035507077
+      PYROLYSIS_RANGE        = 90.39252489068386
+      HEATING_RATE           = 60
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 1838.460303474519 /
+
+&MATL ID                     = 'PMMA4'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 310.72655174589727
+      PYROLYSIS_RANGE        = 179.99298498463392
+      HEATING_RATE           = 80
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 1619.717271736553 /
+
+&MATL ID                     = 'PMMA5'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 300.77205541725533
+      PYROLYSIS_RANGE        = 75.91045441968164
+      HEATING_RATE           = 60
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 1739.082687477869 /
+
+&MATL ID                     = 'PMMA6'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 216.2488285365476
+      PYROLYSIS_RANGE        = 70.36922700264373
+      HEATING_RATE           = 60
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 1253.973471989791 /
+
+&MATL ID                     = 'PMMA7'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 187.2523577480169
+      PYROLYSIS_RANGE        = 73.30255706364409
+      HEATING_RATE           = 60
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 1157.3723612048998 /
+
+&MATL ID                     = 'PMMA8'
+      EMISSIVITY             = {emissivity}
+      ABSORPTION_COEFFICIENT = {absorption_coeff},
+      REFRACTIVE_INDEX       = {refractive_index},
+      SPECIFIC_HEAT_RAMP     = 'PMMA_spec_heat_ramp'
+      CONDUCTIVITY_RAMP      = 'PMMA_conductivity_ramp'
+      DENSITY                = 1201.722222222222
+      N_REACTIONS            = 1
+      REFERENCE_TEMPERATURE  = 196.85774116536888
+      PYROLYSIS_RANGE        = 249.99573096502849
+      HEATING_RATE           = 60
+      SPEC_ID                = 'FuelMixture'
+      NU_SPEC                = 0.9899044759798044
+      MATL_ID                = 'PMMA Aalto Residue'
+      NU_MATL                = 0.010095524020195633
+      HEAT_OF_REACTION       = 758.2134448829147 /
+
+&MATL ID             = 'PMMA Aalto Residue'
+      EMISSIVITY     =  {residue_emissivity},
+      DENSITY        =  2500.0,
+      CONDUCTIVITY   =  {residue_conductivity},
+      SPECIFIC_HEAT  =  {residue_spec_heat}/
+
+
+
+&RAMP ID='PMMA_spec_heat_ramp',
+      T=150., F={spec_heat_150} /
+&RAMP ID='PMMA_spec_heat_ramp',
+      T=480., F={spec_heat_480} /
+&RAMP ID='PMMA_spec_heat_ramp',
+      T=800., F={spec_heat_800} /
+
+&RAMP ID='PMMA_conductivity_ramp',
+      T=150., F={conductivity_150}/
+&RAMP ID='PMMA_conductivity_ramp',
+      T=480., F={conductivity_480} /
+&RAMP ID='PMMA_conductivity_ramp',
+      T=800., F={conductivity_800} /
+
+
+
+
+The backing material data (the density only) is taken from
+Aalto data set in MaCFP git repo:
+https://github.com/MaCFP/matl-db/tree/master/Non-charring/PMMA/Aalto
+
+&MATL ID             = 'Backing'
+      EMISSIVITY     =  {backing_emissivity},
+      DENSITY        =  65.0,
+      CONDUCTIVITY   =  {backing_conductivity},
+      SPECIFIC_HEAT  =  {backing_spec_heat}/
+
+
+
+
+***** Geometry *******************
+
+*** Specimen ***
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch A',
+      XB = -0.05, -0.01666666666666667, -0.05, -0.01666666666666667, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch B',
+      XB = -0.01666666666666667, 0.016666666666666663, -0.05, -0.01666666666666667, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch C',
+      XB = 0.016666666666666663, 0.049999999999999996, -0.05, -0.01666666666666667, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch D',
+      XB = -0.05, -0.01666666666666667, -0.01666666666666667, 0.016666666666666663, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch E',
+      XB = -0.01666666666666667, 0.016666666666666663, -0.01666666666666667, 0.016666666666666663, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch F',
+      XB = 0.016666666666666663, 0.049999999999999996, -0.01666666666666667, 0.016666666666666663, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch G',
+      XB = -0.05, -0.01666666666666667, 0.016666666666666663, 0.049999999999999996, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch H',
+      XB = -0.01666666666666667, 0.016666666666666663, 0.016666666666666663, 0.049999999999999996, 0.0, 0.0 /
+
+&VENT SURF_ID = 'PMMA Aalto Flux Patch I',
+      XB = 0.016666666666666663, 0.049999999999999996, 0.016666666666666663, 0.049999999999999996, 0.0, 0.0 /
+
+
+&OBST SURF_ID = 'INERT',
+      XB      = -0.05,0.05,-0.05,0.05,-0.026,0.0 / SampleHolder
+
+
+
+
+***** Analysis *******************
+
+&DEVC ID="Back_Temp_Centre_0",
+      XYZ=0.0,0.0,0.00001,
+      IOR=3,
+      DEPTH=-0.02050
+      QUANTITY="INSIDE WALL TEMPERATURE"/
+
+
+
+
+#sim_analysis#
+
+
+
+
+&TAIL /
+
