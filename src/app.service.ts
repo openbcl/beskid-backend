@@ -14,7 +14,7 @@ export class AppService {
     try {
       const count =
         readdirSync(dataDirectory)
-          .map((sessionID) => ({ sessionID, path: join(dataDirectory, sessionID) }))
+          .map((sessionId) => ({ sessionId, path: join(dataDirectory, sessionId) }))
           .filter((value) => lstatSync(value.path).isDirectory())
           .map((value) => {
             const checkDelete = () => {
@@ -29,7 +29,7 @@ export class AppService {
           .filter((value) => value.delete)
           .map((value) => {
             rmSync(value.path, { recursive: true, force: true });
-            Logger.log(`Deleted Session ${value.sessionID}`, 'AppService');
+            Logger.log(`Deleted Session ${value.sessionId}`, 'AppService');
             return value;
           })?.length || 0;
       Logger.log(`Deleted ${count} Session${count !== 1 ? 's' : ''}`, 'AppService');

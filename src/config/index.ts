@@ -1,6 +1,6 @@
 import { join, resolve } from 'path';
 import { existsSync } from 'fs';
-import { Model } from '../model/model';
+import { Experiment, Model, Template } from '../model/model';
 import * as rawModels from './models.json';
 import * as rawFDS from './fds.json';
 import * as rawExperiments from './experiments.json';
@@ -18,8 +18,13 @@ export const templateDirectory = resolve('templates');
 
 // generate models
 export const models: Model[] = rawModels.map((model) => {
-  const templatePath = join(templateDirectory, model.template);
-  const hasTemplate = !!model.template?.length && existsSync(templatePath);
+  const experiments: Experiment[] = model.experiments.map((experiment) => ({
+    id: experiment.id,
+    ...rawExperiments[experiment.id],
+    scale: rawScales[rawExperiments[experiment.id].scale],
+    conditions: experiment.conditions,
+    conditionMU: rawExperiments[experiment.id].conditionMU,
+  }));
   return new Model({
     id: model.id,
     description: model.description,
@@ -29,15 +34,14 @@ export const models: Model[] = rawModels.map((model) => {
       version: model.fds,
       revision: rawFDS[model.fds],
     },
-    experiments: model.experiments.map((experiment) => ({
-      id: experiment.name,
-      ...rawExperiments[experiment.name],
-      scale: rawScales[rawExperiments[experiment.name].scale],
-      conditions: experiment.conditions,
-      conditionMU: rawExperiments[experiment.name].conditionMU,
-    })),
-    hasTemplate,
-    templatePath: hasTemplate ? templatePath : undefined,
+    experiments,
+    templates: model.templates
+      .map(template => new Template({
+        templatePath: join(templateDirectory, template.file),
+        experimentId: template.experimentId,
+        condition: template.experimentCondition
+      }))
+      .filter(template => existsSync(template.templatePath) && !!experiments.find(experiment => experiment.id === template.experimentId && experiment.conditions.includes(template.condition))),
     disabled: model.disabled,
   });
 });
