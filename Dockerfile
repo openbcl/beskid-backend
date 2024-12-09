@@ -12,4 +12,6 @@ COPY --from=build /usr/src/app/node_modules /app/node_modules
 COPY --from=build /usr/src/app/dist /app/dist
 COPY --from=build /usr/src/app/python /app/python
 COPY --from=build /usr/src/app/templates /home/pn/templates
+COPY --from=build /usr/src/app/.git/HEAD /app/.git/HEAD
+COPY --from=build /usr/src/app/.git/refs/heads /app/.git/refs/heads
 CMD [ "node", "/app/dist/main.js" ]

@@ -3,6 +3,7 @@ import { lstatSync, readFileSync, readdirSync, rmSync } from 'fs';
 import { join } from 'path';
 import { dataDirectory, encoding, expirationFile } from './config';
 
+
 @Injectable()
 export class AppService {
   constructor() {
@@ -36,5 +37,21 @@ export class AppService {
     } catch {}
     await new Promise((resolve) => setTimeout(resolve, 900000));
     this.clearSessions();
+  }
+
+  async info() {
+    const head = readFileSync('.git/HEAD').toString();
+    const rev = head.substring(5).replace(/\n/g, '');
+    const commit =
+      head.indexOf(':') > -1
+        ? readFileSync('.git/' + rev)
+            .toString()
+            .substring(0, 7)
+        : null;
+    const branch = commit ? rev.split('/').pop() : null;
+    return {
+      commit,
+      branch
+    };
   }
 }

@@ -1,18 +1,31 @@
 import { Controller, Get, Redirect } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Public } from './auth/auth.guard';
-import { ApiExcludeController } from '@nestjs/swagger';
+import { ApiExcludeEndpoint, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Info } from './config';
 
-@ApiExcludeController()
+@ApiTags('App')
 @Public()
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @ApiExcludeEndpoint()
   @Get()
   @Redirect('api', 301)
   redirectToSwaggerUI() {}
 
+  @Get('info')
+  @ApiResponse({
+    type: Info,
+    status: 200,
+    description: 'Request a additional information about the backend',
+  })
+  info() {
+    return this.appService.info()
+  }
+
+  @ApiExcludeEndpoint()
   @Get('data-protection')
   dataProtection() {
     return `
@@ -46,6 +59,7 @@ export class AppController {
     `;
   }
 
+  @ApiExcludeEndpoint()
   @Get('legal-notice')
   legalNotice() {
     return `
@@ -77,6 +91,7 @@ export class AppController {
     `;
   }
 
+  @ApiExcludeEndpoint()
   @Get('contact')
   contact() {
     return `
