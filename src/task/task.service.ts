@@ -171,7 +171,7 @@ export class TaskService {
       }
       let plaintext = readFileSync(template.templatePath, encoding);
       JSON.parse(readFileSync(filepath, encoding)).forEach(
-        (param: { id: string; name: string; value: number }) => (plaintext = plaintext.replaceAll(`{{${param.id}}}`, param.value.toString()))
+        (param: { id: string; name: string; value: number }) => (plaintext = plaintext.replaceAll(`{${param.id}}`, param.value.toString()))
       );
       return plaintext;
     } catch (err) {

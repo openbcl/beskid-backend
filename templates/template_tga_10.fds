@@ -1,0 +1,122 @@
+&HEAD CHID='{name}' /
+
+
+&TIME T_END=10, WALL_INCREMENT=1, DT=1.0 /
+
+
+&MISC TMPA = 50 /
+
+
+
+##############################
+#### Computational Domain ####
+##############################
+
+&MESH ID  = 'Mesh',
+      IJK = 9,9,20
+      XB  = -0.15,0.15,-0.15,0.15,-0.066667,0.600000 /
+
+
+***** Open Vents ********************
+ 
+&VENT MB='XMIN', SURF_ID='OPEN' /
+&VENT MB='XMAX', SURF_ID='OPEN' /
+&VENT MB='YMIN', SURF_ID='OPEN' /
+&VENT MB='YMAX', SURF_ID='OPEN' /
+&VENT MB='ZMIN', SURF_ID='OPEN' /
+&VENT MB='ZMAX', SURF_ID='OPEN' /
+
+
+
+##################
+#### Reaction ####
+##################
+
+***** REAC Parameters ******************
+
+SPEC ID='ETHYLENE', LUMPED_COMPONENT_ONLY=.TRUE./
+&SPEC ID='ETHYLENE'/
+
+&REAC FUEL       = 'ETHYLENE',
+      CO_YIELD   = {co_yield},
+      SOOT_YIELD = {soot_yield} /
+
+
+
+################
+#### Sample ####
+################
+
+***** Sample Surface ******************
+
+&SURF ID                      = 'Sample STA',
+      RGB                     = 200,100,0,
+      TGA_ANALYSIS            = .TRUE.,
+      TGA_HEATING_RATE        = 10,
+      TGA_FINAL_TEMPERATURE   = 600,
+      CELL_SIZE_FACTOR        = 0.1,
+      STRETCH_FACTOR(1:1)     = 1.,
+      LAYER_DIVIDE            = 1.0,
+      BACKING                 = 'EXPOSED',
+      THICKNESS(1:1)          = 0.006,
+      MATL_ID(1,1:1)          = 'TestMaterial',
+      MATL_MASS_FRACTION(1,1) = 1.0 /
+
+
+
+***** Sample Materials and Decomposition Reactions ******************
+
+&MATL ID                     = 'TestMaterial'
+      EMISSIVITY             = {emissivity},
+      REFERENCE_TEMPERATURE  = {reference_temperature},
+      ABSORPTION_COEFFICIENT = 10000.0,
+      SPECIFIC_HEAT_RAMP     = 'Material_spec_heat_ramp',
+      CONDUCTIVITY_RAMP      = 'Material_conductivity_ramp',
+      DENSITY                = 1200.0,
+      N_REACTIONS            = {n_reactions},
+      PYROLYSIS_RANGE        = 100.0,
+      HEATING_RATE           = 60,
+      SPEC_ID                = 'ETHYLENE',
+      NU_SPEC                = {nu_spec},
+      MATL_ID                = 'Material Residue',
+      NU_MATL                = {nu_matl},
+      HEAT_OF_REACTION       = {heat_of_reaction} /
+
+
+&MATL ID             = 'Material Residue'
+      EMISSIVITY     =  {resi_emissivity},
+      DENSITY        =  2500.0,
+      CONDUCTIVITY   =  {resi_conductivity},
+      SPECIFIC_HEAT  =  {resi_spec_heat} /
+
+
+
+&RAMP ID='Material_spec_heat_ramp',
+      T=150., F={spec_heat_150} /
+&RAMP ID='Material_spec_heat_ramp',
+      T=500., F={spec_heat_500} /
+
+&RAMP ID='Material_conductivity_ramp',
+      T=150., F={conductivity_150} /
+&RAMP ID='Material_conductivity_ramp',
+      T=500., F={conductivity_500} /
+
+
+
+
+
+
+
+***** Geometry *******************
+
+*** Specimen ***
+
+&VENT SURF_ID = 'Sample STA',
+      XB = -0.05,0.05, -0.05,0.05, 0.0,0.0 /
+
+&OBST SURF_ID = 'INERT',
+      XB      = -0.05,0.05, -0.05,0.05, -0.026,0.0 / SampleHolder
+
+
+
+&TAIL /
