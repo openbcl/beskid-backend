@@ -113,28 +113,28 @@ if __name__ == "__main__":
 
         # Parameter names
         params = [
-            'PMMA Emissivity',
-            'PMMA Absorption coefficient, m⁻¹',
-            'PMMA Refractive index',
-            'PMMA Conductivity at 150°C, W/m·K',
-            'PMMA Conductivity at 480°C, W/m·K',
-            'PMMA Conductivity at 800°C, W/m·K',
-            'PMMA Specific heat at 150°C, kJ/kg·K',
-            'PMMA Specific heat at 480°C, kJ/kg·K',
-            'PMMA Specific heat at 800°C, kJ/kg·K',
-            'Residue Emissivity',
-            'Residue Conductivity, W/m·K',
-            'Residue Specific heat, kJ/kg·K',
-            'Backing Emissivity',
-            'Backing Conductivity, W/m·K',
-            'Backing Specific heat, kJ/kg·K'
+            { 'id': 'emissivity', 'name': 'PMMA Emissivity' },
+            { 'id': 'absorption_coeff', 'name': 'PMMA Absorption coefficient, m⁻¹' },
+            { 'id': 'refractive_index', 'name': 'PMMA Refractive index' },
+            { 'id': 'conductivity_150', 'name': 'PMMA Conductivity at 150°C, W/m·K' },
+            { 'id': 'conductivity_480', 'name': 'PMMA Conductivity at 480°C, W/m·K' },
+            { 'id': 'conductivity_800', 'name': 'PMMA Conductivity at 800°C, W/m·K' },
+            { 'id': 'spec_heat_150', 'name': 'PMMA Specific heat at 150°C, kJ/kg·K' },
+            { 'id': 'spec_heat_480', 'name': 'PMMA Specific heat at 480°C, kJ/kg·K' },
+            { 'id': 'spec_heat_800', 'name': 'PMMA Specific heat at 800°C, kJ/kg·K' },
+            { 'id': 'residue_emissivity', 'name': 'Residue Emissivity' },
+            { 'id': 'residue_conductivity', 'name': 'Residue Conductivity, W/m·K' },
+            { 'id': 'residue_spec_heat', 'name': 'Residue Specific heat, kJ/kg·K' },
+            { 'id': 'backing_emissivity', 'name': 'Backing Emissivity' },
+            { 'id': 'backing_conductivity', 'name': 'Backing Conductivity, W/m·K' },
+            { 'id': 'backing_spec_heat', 'name': 'Backing Specific heat, kJ/kg·K' }
         ]
 
         # Create JSON output
         predictions_json = [
             {
-                "id": f"param_{i+1}",
-                "name": params[i],
+                "id": params[i].get('id'),
+                "name": params[i].get('name'),
                 "value": round(y_pred[i],4)
             } for i in range(len(params))
         ]
