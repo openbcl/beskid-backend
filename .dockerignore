@@ -9,3 +9,5 @@ training
 python/*
 !python/*.py
 !python/*.pth
+!.git/HEAD
+!.git/refs/heads
