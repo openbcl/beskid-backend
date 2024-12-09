@@ -6,11 +6,13 @@
         "resolution": 100,
         "fds": "6.7.6",
         "experiments": [
-            { "name" : "TGA", "conditions": [5, 10] },
-            { "name" : "MCC", "conditions": [10] },
-            { "name" : "CONE", "conditions": [25] }
+            { "id" : "CONE", "conditions": [65] }
         ],
-        "template": "template.fds",
+        "templates": [{
+            "file": "template_cone_65.fds",
+            "experimentId": "CONE",
+            "experimentCondition": 65
+        }],
         "disabled": false
     },
     {
@@ -20,11 +22,35 @@
         "resolution": 100,
         "fds": "6.9.1",
         "experiments": [
-            { "name" : "TGA", "conditions": [10, 20, 40] },
-            { "name" : "MCC", "conditions": [15] },
-            { "name" : "CONE", "conditions": [30] }
+            { "id": "TGA", "conditions": [5, 10] },
+            { "id": "MCC", "conditions": [45, 60] },
+            { "id": "CONE", "conditions": [50, 75] }
         ],
-        "template": "template.fds",
+        "templates": [{
+            "file": "template_tga_5.fds",
+            "experimentId": "TGA",
+            "experimentCondition": 5
+        }, {
+            "file": "template_tga_10.fds",
+            "experimentId": "TGA",
+            "experimentCondition": 10
+        }, {
+            "file": "template_mcc_45.fds",
+            "experimentId": "MCC",
+            "experimentCondition": 45
+        }, {
+            "file": "template_mcc_60.fds",
+            "experimentId": "MCC",
+            "experimentCondition": 60
+        }, {
+            "file": "template_cone_50.fds",
+            "experimentId": "CONE",
+            "experimentCondition": 50
+        }, {
+            "file": "template_cone_75.fds",
+            "experimentId": "CONE",
+            "experimentCondition": 75
+        }],
         "disabled": false
     }
 ]

@@ -32,6 +32,19 @@ export class Experiment {
   conditions: number[];
 }
 
+export class Template {
+  @Exclude()
+  templatePath: string;
+  @ApiProperty({ description: 'Corresponding experiment ID' })
+  experimentId: string;
+  @ApiProperty({ description: 'Corresponding experiment condition' })
+  condition: number;
+
+  constructor(partial: Partial<Template>) {
+    Object.assign(this, partial);
+  }
+}
+
 export class Model {
   @ApiProperty({ type: Number, description: 'Decimal identifier', minimum: 1 })
   id: number;
@@ -51,11 +64,8 @@ export class Model {
   @ApiProperty({ type: FDS })
   fds: FDS;
 
-  @ApiProperty({ type: Boolean, description: 'Indicates whether FDS template is available' })
-  hasTemplate: boolean;
-
-  @Exclude()
-  templatePath?: string;
+  @ApiProperty({ type: [Template], description: 'Available FDS templates' })
+  templates: Template[];
 
   @ApiProperty({ type: Boolean, description: 'Disabled models are not available for new calculations.' })
   disabled: boolean;
@@ -65,4 +75,4 @@ export class Model {
   }
 }
 
-export class ModelPartial extends PickType(Model, ['id', 'name', 'fds', 'hasTemplate', 'disabled']){}
+export class ModelPartial extends PickType(Model, ['id', 'name', 'fds', 'disabled']){}

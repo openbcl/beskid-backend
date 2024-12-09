@@ -4,13 +4,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
   NotImplementedException,
-  ForbiddenException,
   UnprocessableEntityException,
   StreamableFile,
   forwardRef,
   Logger,
 } from '@nestjs/common';
-import { CreateTask, Task, TaskSetting, TaskResult, TaskResultEvaluation, TaskTraining } from './task';
+import { CreateTask, Task, TaskSetting, TaskResult, TaskResultEvaluation } from './task';
 import { join } from 'path';
 import { existsSync, readFileSync, readdirSync, rmSync, lstatSync, createReadStream, mkdirSync, copyFileSync, renameSync } from 'fs';
 import { UUID } from 'crypto';
@@ -34,32 +33,9 @@ export class TaskService {
       name: rawExperiments[createTask.setting.id].name,
       conditionMU: rawExperiments[createTask.setting.id].conditionMU,
     };
-    const task = new Task(sessionId, createTask.values, setting, createTask.training);
+    const task = new Task(sessionId, createTask.values, setting);
     task.saveInputfile();
     Logger.log(`Created new task "${task.id}" for session "${sessionId}"`, 'TaskService');
-    return task;
-  }
-
-  editTask(sessionId: UUID, taskId: UUID, training: TaskTraining) {
-    const task = this.findTask(sessionId, taskId) as Task;
-    renameSync(task.directory, join(dataDirectory, sessionId, `${training === TaskTraining.ENABLED ? '1' : '0'}_${taskId}`));
-    task.training = training;
-    Logger.log(`${training === TaskTraining.ENABLED ? 'Enabled' : 'Disabled'} training for task "${task.id}" of session "${sessionId}"`, 'TaskService');
-    if (training === TaskTraining.DISABLED) {
-      task.results = task.results.map((result) => {
-        if (result.evaluation !== TaskResultEvaluation.NEUTRAL) {
-          try {
-            rmSync(join(trainingDirectory, task.id), { recursive: true, force: true });
-            Logger.log(`Deleted training data of task "${task.id}"`, 'TaskService');
-          } catch (err) {
-            Logger.error(err, 'TaskService');
-            throw new InternalServerErrorException();
-          }
-          result.evaluation = TaskResultEvaluation.NEUTRAL;
-        }
-        return result;
-      });
-    }
     return task;
   }
 
@@ -82,7 +58,7 @@ export class TaskService {
 
   findTask(sessionId: UUID, taskId: UUID, parseValues = false) {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
-    const { taskDirectory, training } = this.findDirectories(sessionId, taskId);
+    const { taskDirectory } = this.findDirectories(sessionId, taskId);
     const inputFilename = readdirSync(taskDirectory).find((name) => name.match(/input_.+?.txt/));
     const di = inputFilename.match(this.composedRegex(/input_/, timestampRegEx, /_(.+?)_(.+?)_(.+?).txt/));
     if (!inputFilename || !di) {
@@ -123,7 +99,6 @@ export class TaskService {
       sessionId,
       parseValues ? this.parseInputfile(join(taskDirectory, inputFilename)) : undefined,
       setting,
-      training,
       taskId,
       date,
       results
@@ -135,8 +110,8 @@ export class TaskService {
     const sessionDirectory = join(dataDirectory, sessionId);
     return existsSync(sessionDirectory)
       ? readdirSync(sessionDirectory)
-          .filter((name) => lstatSync(join(sessionDirectory, name)).isDirectory())
-          .map((name: string) => this.findTask(sessionId, name.slice(2) as UUID))
+          .filter((name: UUID) => lstatSync(join(sessionDirectory, name)).isDirectory())
+          .map((name: UUID) => this.findTask(sessionId, name))
       : [];
   }
 
@@ -176,7 +151,7 @@ export class TaskService {
     }
   }
 
-  findTaskResultTemplateData(sessionId: UUID, taskId: UUID, fileId: string): string {
+  findTaskResultTemplateData(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition: number): string {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     if (fileId.endsWith(extension)) {
       fileId = fileId.slice(0, -extension.length);
@@ -187,26 +162,27 @@ export class TaskService {
     }
     try {
       const model = this.modelService.findModel(parseInt(fileId.split('_').at(-1)));
-      if (!model.hasTemplate) {
+      if (!model.templates.length) {
         throw new UnprocessableEntityException();
       }
-      let template = readFileSync(model.templatePath, encoding);
+      const template = model.templates?.find(template => template.experimentId === experimentId && template.condition === condition);
+      if (!template) {
+        throw new NotFoundException();
+      }
+      let plaintext = readFileSync(template.templatePath, encoding);
       JSON.parse(readFileSync(filepath, encoding)).forEach(
-        (param: { id: string; name: string; value: number }) => (template = template.replaceAll(`{{${param.id}}}`, param.value.toString()))
+        (param: { id: string; name: string; value: number }) => (plaintext = plaintext.replaceAll(`{${param.id}}`, param.value.toString()))
       );
-      return template;
+      return plaintext;
     } catch (err) {
       Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
   }
 
-  findTaskResultTemplateFile(sessionId: UUID, taskId: UUID, fileId: string): StreamableFile {
-    if (fileId.endsWith(extension)) {
-      fileId = fileId.slice(0, -extension.length);
-    }
-    const template = this.findTaskResultTemplateData(sessionId, taskId, fileId);
-    return new StreamableFile(Buffer.from(template), { disposition: `attachment; filename="${fileId}.fds"` });
+  findTaskResultTemplateFile(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition: number): StreamableFile {
+    const template = this.findTaskResultTemplateData(sessionId, taskId, fileId, experimentId, condition);
+    return new StreamableFile(Buffer.from(template), { disposition: `attachment; filename="${fileId.endsWith(extension) ? fileId.slice(0, -extension.length) : fileId}_${experimentId}_${condition}.fds"` });
   }
 
   async deleteTaskResult(sessionId: UUID, taskId: UUID, fileId: string, keepTrainingDataData: boolean): Promise<Task> {
@@ -218,7 +194,7 @@ export class TaskService {
       throw new NotFoundException();
     }
     rmSync(filepath, { force: true });
-    if (!keepTrainingDataData && task.training === TaskTraining.ENABLED && result.evaluation !== TaskResultEvaluation.NEUTRAL) {
+    if (!keepTrainingDataData && result.evaluation !== TaskResultEvaluation.NEUTRAL) {
       const trainingTaskDirectory = join(trainingDirectory, task.id);
       this.cleanupEvaluation(trainingTaskDirectory, result.evaluation, result);
     }
@@ -245,9 +221,6 @@ export class TaskService {
 
   evaluateTaskResult(sessionId: UUID, taskId: UUID, fileId: string, evalutation: TaskResultEvaluation) {
     const task = this.findTask(sessionId, taskId) as Task;
-    if (task.training === TaskTraining.DISABLED) {
-      throw new ForbiddenException();
-    }
     const evaluatedResult = task.results.find(
       (result) => result.filename === (fileId.slice(-extension.length).toLocaleLowerCase() === extension ? fileId : fileId + extension)
     );
@@ -320,14 +293,11 @@ export class TaskService {
     if (!existsSync(sessionDirectory)) {
       throw new NotFoundException();
     }
-    const privateTaskPath = join(sessionDirectory, `0_${taskId}`);
-    const trainingTaskPath = join(sessionDirectory, `1_${taskId}`);
-    const training = existsSync(trainingTaskPath) ? TaskTraining.ENABLED : TaskTraining.DISABLED;
-    const taskDirectory = training === TaskTraining.ENABLED ? trainingTaskPath : privateTaskPath;
-    if (taskDirectory === privateTaskPath && !existsSync(privateTaskPath)) {
+    const taskDirectory = join(sessionDirectory, taskId);
+    if (!existsSync(taskDirectory)) {
       throw new NotFoundException();
     }
-    return { sessionDirectory, taskDirectory, training };
+    return { sessionDirectory, taskDirectory };
   }
 
   private composedRegex = (...regexes: RegExp[]) => new RegExp(regexes.map((regex) => regex.source).join(''));

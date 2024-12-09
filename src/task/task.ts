@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import { EOL } from 'os';
 import { Experiment, Model, ModelPartial } from '../model/model';
 import { dataDirectory, encoding } from '../config';
-import { IsEnum, IsNumber, IsUUID, registerDecorator } from 'class-validator';
+import { IsNumber, IsUUID, registerDecorator } from 'class-validator';
 import { ApiProperty, IntersectionType, PartialType, PickType } from '@nestjs/swagger';
 import { Job } from '../queue/job';
 import { Exclude } from 'class-transformer';
@@ -29,11 +29,6 @@ const IsTaskSetting = () => {
       },
     });
 };
-
-export enum TaskTraining {
-  DISABLED = 'DISABLED',
-  ENABLED = 'ENABLED',
-}
 
 export enum TaskResultEvaluation {
   NEUTRAL = 'NEUTRAL',
@@ -87,10 +82,6 @@ export class Task {
   })
   setting: TaskSetting;
 
-  @IsEnum(TaskTraining)
-  @ApiProperty({ enum: TaskTraining, description: 'The marker indicates whether training is enabled or not.' })
-  training: TaskTraining;
-
   @ApiProperty({ format: 'uuid', description: 'UUID example: "49f1852d-3f2b-4b89-b392-4b1cfa3e4f5c"' })
   id: UUID;
 
@@ -116,7 +107,6 @@ export class Task {
     sessionId: UUID,
     values: number[],
     setting: TaskSetting,
-    training = TaskTraining.DISABLED,
     id: UUID = randomUUID(),
     date = new Date(),
     results: TaskResult[] = [],
@@ -125,11 +115,10 @@ export class Task {
     this.sessionId = sessionId;
     this.values = values;
     this.setting = setting;
-    this.training = training;
     this.id = id;
     this.date = date;
     this.results = results;
-    this.directory = join(dataDirectory, sessionId, `${this.training === TaskTraining.ENABLED ? '1' : '0'}_${this.id}`);
+    this.directory = join(dataDirectory, sessionId, this.id);
     this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.setting.resolution}_${this.setting.id}_${this.setting.condition}.txt`;
   }
 
@@ -145,7 +134,7 @@ export class Task {
   };
 }
 
-export class CreateTask extends PickType(Task, ['values', 'setting', 'training'] as const) {}
+export class CreateTask extends PickType(Task, ['values', 'setting'] as const) {}
 
 export class TaskIdParam {
   @IsUUID()

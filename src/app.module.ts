@@ -29,8 +29,13 @@ const connection = (): ConnectionOptions => {
   return {
     host: process.env['redisHost'],
     port: parseInt(process.env['redisPort']) || undefined,
-    ...(!!ca?.length ? { tls: { ca, ...(!!cert?.length && !!key?.length ? { cert, key } : {}) } } : {}),
-    ...(!cert?.length || (!key?.length && !!password?.length) ? { password } : {}),
+    ...(!!ca?.length || !!cert?.length && !!key?.length ? {
+      tls: {
+        ...(!!ca?.length ? { ca } : {}),
+        ...(!!cert?.length && !!key?.length ? { cert, key } : {})
+      } 
+    } : {}),
+    ...(!!password?.length ? { password } : {}),
   };
 };
 
