@@ -24,6 +24,7 @@
         "experiments": [
             { "id": "TGA", "conditions": [5, 10] },
             { "id": "MCC", "conditions": [45, 60] },
+            { "id": "DSC", "conditions": [15, 30] },
             { "id": "CONE", "conditions": [50, 75] }
         ],
         "templates": [{
@@ -42,6 +43,14 @@
             "file": "template_mcc_60.fds",
             "experimentId": "MCC",
             "experimentCondition": 60
+        }, {
+            "file": "template_dsc_15.fds",
+            "experimentId": "DSC",
+            "experimentCondition": 15
+        }, {
+            "file": "template_dsc_30.fds",
+            "experimentId": "DSC",
+            "experimentCondition": 30
         }, {
             "file": "template_cone_50.fds",
             "experimentId": "CONE",

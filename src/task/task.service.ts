@@ -95,6 +95,7 @@ export class TaskService {
               : TaskResultEvaluation.NEUTRAL,
         } as TaskResult;
       });
+    // eslint-disable-next-line prettier/prettier
     const task = new Task(
       sessionId,
       parseValues ? this.parseInputfile(join(taskDirectory, inputFilename)) : undefined,
@@ -165,7 +166,7 @@ export class TaskService {
       if (!model.templates.length) {
         throw new UnprocessableEntityException();
       }
-      const template = model.templates?.find(template => template.experimentId === experimentId && template.condition === condition);
+      const template = model.templates?.find((template) => template.experimentId === experimentId && template.condition === condition);
       if (!template) {
         throw new NotFoundException();
       }
@@ -182,7 +183,9 @@ export class TaskService {
 
   findTaskResultTemplateFile(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition: number): StreamableFile {
     const template = this.findTaskResultTemplateData(sessionId, taskId, fileId, experimentId, condition);
-    return new StreamableFile(Buffer.from(template), { disposition: `attachment; filename="${fileId.endsWith(extension) ? fileId.slice(0, -extension.length) : fileId}_${experimentId}_${condition}.fds"` });
+    return new StreamableFile(Buffer.from(template), {
+      disposition: `attachment; filename="${fileId.endsWith(extension) ? fileId.slice(0, -extension.length) : fileId}_${experimentId}_${condition}.fds"`,
+    });
   }
 
   async deleteTaskResult(sessionId: UUID, taskId: UUID, fileId: string, keepTrainingDataData: boolean): Promise<Task> {
