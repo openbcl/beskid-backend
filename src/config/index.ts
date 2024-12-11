@@ -5,6 +5,21 @@ import * as rawModels from './models.json';
 import * as rawFDS from './fds.json';
 import * as rawExperiments from './experiments.json';
 import * as rawScales from './scales.json';
+import { ApiProperty } from '@nestjs/swagger';
+
+export class Info {
+  @ApiProperty({
+    type: String,
+    description: 'GitHub commit ID of current version',
+  })
+  commit: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'GitHub branch of current version',
+  })
+  branch: string;
+}
 
 // file settings
 export const expirationFile = '.expiration';

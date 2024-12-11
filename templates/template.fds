@@ -1,17 +1,17 @@
 This is a dummy file which is used to test the replacement of placeholder variables
 
-param_1={param_1}
-param_2={param_2}
-param_3={param_3}
-param_4={param_4}
-param_5={param_5}
-param_6={param_6}
-param_7={param_7}
-param_8={param_8}
-param_9={param_9}
-param_10={param_10}
-param_11={param_11}
-param_12={param_12}
-param_13={param_13}
-param_14={param_14}
-param_15={param_15}
+param_1={emissivity}
+param_2={absorption_coeff}
+param_3={refractive_index}
+param_4={conductivity_150}
+param_5={conductivity_480}
+param_6={conductivity_800}
+param_7={spec_heat_150}
+param_8={spec_heat_480}
+param_9={spec_heat_800}
+param_10={residue_emissivity}
+param_11={residue_conductivity}
+param_12={residue_spec_heat}
+param_13={backing_emissivity}
+param_14={backing_conductivity}
+param_15={backing_spec_heat}

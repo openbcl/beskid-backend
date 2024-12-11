@@ -1,5 +1,6 @@
 {
     "TGA": { "name": "Thermogravimetric Analysis (TGA)", "scale": "micro", "conditionMU": "Heating Rate (K/min)" },
     "MCC": { "name": "Micro Combustion Calorimeter (MCC)", "scale": "micro", "conditionMU": "Heating Rate (K/min)" },
+    "DSC": { "name": "Differential Scanning Calorimetry (DSC)", "scale": "micro", "conditionMU": "Heating Rate (K/min)" },
     "CONE": { "name": "Cone Calorimeter", "scale": "small", "conditionMU": "Heat Flux (kW/m2)" }
 }

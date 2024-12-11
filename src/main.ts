@@ -32,7 +32,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
-      tagsSorter: (a: any, b: any) => (a === 'Authentication' ? -1 : a - b),
+      tagsSorter: (a: any, b: any) => a === 'Authentication' ? (b === 'App' ? 1 : -1) : NaN,
       operationsSorter: 'alpha',
     },
     customSiteTitle: 'BESKID API',
