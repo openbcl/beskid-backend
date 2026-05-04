@@ -1,0 +1,132 @@
+&HEAD CHID='{name}' 
+      TITLE='Simplified cone calorimeter simulation setup'  /
+
+
+&TIME T_END={tend}, WALL_INCREMENT=1, DT=1.0 /
+
+&DUMP NFRAMES={nframes}, DT_HRR=5.0 /
+
+&MISC SIMULATION_MODE='LES',
+      TMPA={ambient_temp} /
+
+! ##############################
+! #### Computational Domain ####
+! ##############################
+3.33 cm cells
+&MESH ID  = 'Mesh',
+      IJK = 9,9,20
+      XB  = -0.15,0.15,-0.15,0.15,-0.066667,0.600000 /
+
+&VENT MB='XMIN', SURF_ID='OPEN' /
+&VENT MB='XMAX', SURF_ID='OPEN' /
+&VENT MB='YMIN', SURF_ID='OPEN' /
+&VENT MB='YMAX', SURF_ID='OPEN' /
+&VENT MB='ZMIN', SURF_ID='OPEN' /
+&VENT MB='ZMAX', SURF_ID='OPEN' /
+
+! ##################
+! #### Reaction ####
+! ##################
+
+&SPEC ID='PROPANE' /
+
+&REAC FUEL='PROPANE',
+      SOOT_YIELD=0.005,
+      CO_YIELD=0.0 /
+
+! ################
+! #### Sample ####
+! ################
+
+&SURF ID='Sample Flux Patch',
+      RGB=200,100,0,
+      EXTERNAL_FLUX={heat_flux},
+      CELL_SIZE_FACTOR=0.5,
+      STRETCH_FACTOR(1:1)=1.,
+      LAYER_DIVIDE=1.0,
+      BACKING='EXPOSED',
+      THICKNESS(1:2)={thickness},{backing_thickness},
+      MATL_ID(1,1:1)='TestMaterial',
+      MATL_ID(2,1:1)='Backing',
+      MATL_MASS_FRACTION(1,1)={matl_mass_fraction},
+      MATL_MASS_FRACTION(2,1)=1.0 /
+
+&MATL ID='TestMaterial',
+      EMISSIVITY={emissivity},
+      ABSORPTION_COEFFICIENT=10000.0,
+      SPECIFIC_HEAT_RAMP='Material_spec_heat_ramp',
+      CONDUCTIVITY_RAMP='Material_conductivity_ramp',
+      DENSITY={density},
+      N_REACTIONS={n_reactions},
+      REFERENCE_TEMPERATURE={reference_temperature},
+      PYROLYSIS_RANGE={delta_T_K},
+      HEATING_RATE=60,
+      SPEC_ID='PROPANE',
+      NU_SPEC=1,
+      MATL_ID='Material Residue',
+      NU_MATL=0,
+      HEAT_OF_REACTION={heat_of_reaction},
+      HEAT_OF_COMBUSTION={heat_of_combustion} /
+
+&MATL ID='Material Residue',
+      DENSITY=500.,
+      EMISSIVITY=0.90,
+      CONDUCTIVITY=0.15,
+      SPECIFIC_HEAT=0.90 /
+
+&RAMP ID='Material_spec_heat_ramp', T=25.,  F={spec_heat_25} /
+&RAMP ID='Material_spec_heat_ramp', T=150., F={spec_heat_150} /
+&RAMP ID='Material_spec_heat_ramp', T=500., F={spec_heat_500} /
+
+&RAMP ID='Material_conductivity_ramp', T=25.,  F={conductivity_25} /
+&RAMP ID='Material_conductivity_ramp', T=150., F={conductivity_150} /
+&RAMP ID='Material_conductivity_ramp', T=500., F={conductivity_500} /
+
+! #################
+! #### Backing ####
+! #################
+
+! backing material notes
+! the backing material data is taken from Morgan Advanced Materials
+! Superwool Plus Blanket data sheet:
+! https://www.morganthermalceramics.com/media/l52g3r3j/superwool-plus-blankets_eng.pdf
+! Accessed: 2025-06-30
+! Publication Date: 18 April 2025
+! Code: BL.01
+!
+! The specific heat capacity is set to 1.05 kJ/(kg K) determined at 980 °C.
+! Value taken from data sheet:
+! https://www.morganthermalceramics.com/media/wzafy2qz/superwool-plus-ht-bulkfibres_eng.pdf
+! Accessed: 2025-06-30
+! Publication Date: 01 January 2025
+! Code: BU.05
+
+&MATL ID='Backing',
+      EMISSIVITY=0.9,
+      DENSITY=96.0,
+      CONDUCTIVITY_RAMP='Insulation_conductivity_ramp',
+      SPECIFIC_HEAT=1.05 /
+
+&RAMP ID='Insulation_conductivity_ramp', T=200.,  F=0.05 /
+&RAMP ID='Insulation_conductivity_ramp', T=400.,  F=0.09 /
+&RAMP ID='Insulation_conductivity_ramp', T=600.,  F=0.14 /
+&RAMP ID='Insulation_conductivity_ramp', T=800.,  F=0.21 /
+&RAMP ID='Insulation_conductivity_ramp', T=1000., F=0.30 /
+
+! ##################
+! #### Geometry ####
+! ##################
+
+&VENT SURF_ID='Sample Flux Patch',
+      XB=-0.05,0.05,-0.05,0.05,0.0,0.0 /
+
+&OBST SURF_ID='INERT',
+      XB=-0.05,0.05,-0.05,0.05,{obst_zmin},0.0 / Sample Holder
+
+! ##################
+! #### Analysis ####
+! ##################
+
+
+
+&TAIL /

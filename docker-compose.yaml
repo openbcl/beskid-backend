@@ -16,4 +16,5 @@ services:
       - tokenExpirationTime=7d
       - tokenSecret=abc123
       - scriptDir=/app/python
+      - scriptFile=run_main.py
       - redisHost=redis-db

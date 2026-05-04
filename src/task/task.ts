@@ -18,12 +18,16 @@ const IsTaskSetting = () => {
       validator: {
         validate(value: any) {
           return (
+            !!value &&
             'id' in value &&
             typeof value.id === 'string' &&
             'resolution' in value &&
             typeof value.resolution === 'number' &&
-            'condition' in value &&
-            typeof value.condition === 'number'
+            'conditions' in value &&
+            typeof value.conditions === 'object' &&
+            value.conditions !== null &&
+            !Array.isArray(value.conditions) &&
+            Object.values(value.conditions).every((conditionValue) => typeof conditionValue === 'number')
           );
         },
       },
@@ -62,12 +66,16 @@ export class TaskResult {
 }
 
 export class TaskSetting extends IntersectionType(
-  PickType(Experiment, ['id']),
-  PickType(PartialType(Experiment), ['name', 'conditionMU']),
-  PickType(Model, ['resolution'])
+  PickType(Experiment, ['id'] as const),
+  PickType(PartialType(Experiment), ['name'] as const),
+  PickType(Model, ['resolution'] as const)
 ) {
-  @ApiProperty({ description: 'Experiment condition value' })
-  condition: number;
+  @ApiProperty({
+    description: 'Selected experiment condition values keyed by condition id',
+    type: 'object',
+    additionalProperties: { type: 'number' },
+  })
+  conditions: Record<string, number>;
 }
 
 export class Task {
@@ -103,6 +111,9 @@ export class Task {
   @Exclude()
   inputFilename: string;
 
+  @Exclude()
+  settingFilename = 'setting.json';
+
   constructor(
     sessionId: UUID,
     values: number[],
@@ -119,7 +130,7 @@ export class Task {
     this.date = date;
     this.results = results;
     this.directory = join(dataDirectory, sessionId, this.id);
-    this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.setting.resolution}_${this.setting.id}_${this.setting.condition}.txt`;
+    this.inputFilename = inputFilename || `input_${this.timestamp(date)}_${this.setting.resolution}_${this.setting.id}.txt`;
   }
 
   @Exclude()
@@ -131,6 +142,7 @@ export class Task {
       mkdirSync(this.directory, { recursive: true });
     }
     writeFileSync(join(this.directory, this.inputFilename), this.values.map((value) => value.toExponential(18)).join(EOL), { encoding });
+    writeFileSync(join(this.directory, this.settingFilename), JSON.stringify(this.setting), { encoding });
   };
 }
 

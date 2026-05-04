@@ -18,6 +18,13 @@ import { dataDirectory, encoding, extension, trainingDirectory } from '../config
 import { QueueService } from '../queue/queue.service';
 import * as rawExperiments from '../config/experiments.json';
 
+type TaskResultParam = {
+  id: string;
+  name: string;
+  value: number;
+  templateOnly?: boolean;
+};
+
 @Injectable()
 export class TaskService {
   constructor(
@@ -31,7 +38,6 @@ export class TaskService {
     const setting: TaskSetting = {
       ...createTask.setting,
       name: rawExperiments[createTask.setting.id].name,
-      conditionMU: rawExperiments[createTask.setting.id].conditionMU,
     };
     const task = new Task(sessionId, createTask.values, setting);
     task.saveInputfile();
@@ -60,18 +66,24 @@ export class TaskService {
     const timestampRegEx = /(\d{4})-(\d{2})-(\d{2})_(\d{2})-(\d{2})-(\d{2})/;
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     const inputFilename = readdirSync(taskDirectory).find((name) => name.match(/input_.+?.txt/));
-    const di = inputFilename.match(this.composedRegex(/input_/, timestampRegEx, /_(.+?)_(.+?)_(.+?).txt/));
+    const di = inputFilename.match(this.composedRegex(/input_/, timestampRegEx, /_(.+?)_(.+?).txt/));
+    const settingPath = join(taskDirectory, 'setting.json');
     if (!inputFilename || !di) {
       Logger.error(`Inputfile of task "${taskId}" not found`, 'TaskService');
       throw new InternalServerErrorException();
     }
+    if (!existsSync(settingPath)) {
+      Logger.error(`Setting file of task "${taskId}" not found`, 'TaskService');
+      throw new InternalServerErrorException();
+    }
     const date = new Date(Date.parse(`${di[1]}-${di[2]}-${di[3]}T${di[4]}:${di[5]}:${di[6]}.000Z`));
+    const fileSetting = JSON.parse(readFileSync(settingPath, encoding)) as TaskSetting;
     const setting: TaskSetting = {
+      ...fileSetting,
       id: di[8],
       name: rawExperiments[di[8]].name,
       resolution: Number.parseInt(di[7]),
-      condition: Number.parseFloat(di[9]),
-      conditionMU: rawExperiments[di[8]].conditionMU,
+      conditions: fileSetting.conditions || {},
     };
     const results = readdirSync(taskDirectory)
       .filter((name) => name.match(/result_.+?.json/))
@@ -98,7 +110,7 @@ export class TaskService {
     // eslint-disable-next-line prettier/prettier
     const task = new Task(
       sessionId,
-      parseValues ? this.parseInputfile(join(taskDirectory, inputFilename)) : undefined,
+      parseValues ? this.parseInputfile(join(taskDirectory, inputFilename), setting.resolution) : undefined,
       setting,
       taskId,
       date,
@@ -119,9 +131,10 @@ export class TaskService {
   runTask(sessionId: UUID, taskId: UUID, modelId: number) {
     const model = this.modelService.findModel(modelId);
     const task = this.findTask(sessionId, taskId) as Task;
+    // Verify that the experiment exists and the model supports it
     if (
       !model.experiments.find(
-        (experiment) => experiment.id === task.setting.id && experiment.conditions.find((condition) => condition === task.setting.condition)
+        (experiment) => experiment.id === task.setting.id
       )
     ) {
       throw new UnprocessableEntityException();
@@ -145,14 +158,16 @@ export class TaskService {
       throw new NotFoundException();
     }
     try {
-      return JSON.parse(readFileSync(filepath, encoding));
+      const params = this.readTaskResultParams(filepath);
+      // Keep template-only parameters in file downloads, but hide them in the JSON payload for result screens.
+      return params.filter((param) => !param.templateOnly).map(({ id, name, value }) => ({ id, name, value }));
     } catch (err) {
       Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
   }
 
-  findTaskResultTemplateData(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition: number): string {
+  findTaskResultTemplateData(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition?: number): string {
     const { taskDirectory } = this.findDirectories(sessionId, taskId);
     if (fileId.endsWith(extension)) {
       fileId = fileId.slice(0, -extension.length);
@@ -166,12 +181,17 @@ export class TaskService {
       if (!model.templates.length) {
         throw new UnprocessableEntityException();
       }
-      const template = model.templates?.find((template) => template.experimentId === experimentId && template.condition === condition);
+      const task = this.findTask(sessionId, taskId) as Task;
+      const template = model.templates?.find(
+        (template) =>
+          template.experimentId === experimentId &&
+          this.matchTemplateConditions(template.conditions, template.condition, task.setting.conditions, condition)
+      );
       if (!template) {
         throw new NotFoundException();
       }
       let plaintext = readFileSync(template.templatePath, encoding);
-      JSON.parse(readFileSync(filepath, encoding)).forEach(
+      this.readTaskResultParams(filepath).forEach(
         (param: { id: string; name: string; value: number }) => (plaintext = plaintext.replaceAll(`{${param.id}}`, param.value.toString()))
       );
       return plaintext;
@@ -181,7 +201,7 @@ export class TaskService {
     }
   }
 
-  findTaskResultTemplateFile(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition: number): StreamableFile {
+  findTaskResultTemplateFile(sessionId: UUID, taskId: UUID, fileId: string, experimentId: string, condition?: number): StreamableFile {
     const template = this.findTaskResultTemplateData(sessionId, taskId, fileId, experimentId, condition);
     return new StreamableFile(Buffer.from(template), {
       disposition: `attachment; filename="${fileId.endsWith(extension) ? fileId.slice(0, -extension.length) : fileId}_${experimentId}_${condition}.fds"`,
@@ -273,7 +293,7 @@ export class TaskService {
     return task;
   }
 
-  private parseInputfile = (filepath: string): number[] => {
+  private parseInputfile = (filepath: string, expectedResolution: number): number[] => {
     let values: number[];
     try {
       values = readFileSync(filepath, encoding)
@@ -285,7 +305,7 @@ export class TaskService {
       Logger.error(err, 'TaskService');
       throw new InternalServerErrorException();
     }
-    if (values.length !== 100) {
+    if (values.length !== expectedResolution) {
       throw new NotImplementedException();
     }
     return values;
@@ -304,4 +324,38 @@ export class TaskService {
   }
 
   private composedRegex = (...regexes: RegExp[]) => new RegExp(regexes.map((regex) => regex.source).join(''));
+
+  private readTaskResultParams(filepath: string): TaskResultParam[] {
+    const parsed = JSON.parse(readFileSync(filepath, encoding));
+    if (!Array.isArray(parsed)) {
+      throw new InternalServerErrorException('Result file has invalid format');
+    }
+    return parsed;
+  }
+
+  private matchTemplateConditions(
+    templateConditions: Record<string, number | number[]> | undefined,
+    templateLegacyCondition: number | undefined,
+    taskConditions: Record<string, number> | undefined,
+    requestedCondition?: number
+  ): boolean {
+    if (templateConditions && Object.keys(templateConditions).length) {
+      if (!taskConditions) {
+        return false;
+      }
+      return Object.entries(templateConditions).every(([key, value]) => {
+        const taskValue = taskConditions[key];
+        if (taskValue === undefined) {
+          return false;
+        }
+        return Array.isArray(value) ? value.includes(taskValue) : taskValue === value;
+      });
+    }
+    // Legacy mode: support existing templates defined only by a single condition value.
+    const conditionToMatch = requestedCondition ?? templateLegacyCondition;
+    if (conditionToMatch === undefined) {
+      return true;
+    }
+    return !!taskConditions && Object.values(taskConditions).includes(conditionToMatch);
+  }
 }

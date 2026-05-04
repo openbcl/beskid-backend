@@ -1,0 +1,6 @@
+# Runtime dependencies for Python model execution
+numpy
+pandas
+joblib
+torch
+scikit-learn

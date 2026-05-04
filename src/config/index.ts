@@ -38,8 +38,33 @@ export const models: Model[] = rawModels.map((model) => {
     ...rawExperiments[experiment.id],
     scale: rawScales[rawExperiments[experiment.id].scale],
     conditions: experiment.conditions,
-    conditionMU: rawExperiments[experiment.id].conditionMU,
   }));
+
+  const hasTemplateCondition = (
+    experimentId: string,
+    templateConditions?: Record<string, number | number[]>,
+    legacyCondition?: number
+  ) => {
+    const experiment = experiments.find((entry) => entry.id === experimentId);
+    if (!experiment) {
+      return false;
+    }
+    if (templateConditions && Object.keys(templateConditions).length) {
+      return Object.entries(templateConditions).every(([conditionId, value]) => {
+        const config = experiment.conditions.find((condition) => condition.id === conditionId);
+        if (!config) {
+          return false;
+        }
+        const requestedValues = Array.isArray(value) ? value : [value];
+        return requestedValues.every((entry) => config.values.includes(entry));
+      });
+    }
+    if (legacyCondition === undefined) {
+      return false;
+    }
+    return !!experiment.conditions.find((conditionConfig) => conditionConfig.values.includes(legacyCondition));
+  };
+
   return new Model({
     id: model.id,
     description: model.description,
@@ -51,12 +76,26 @@ export const models: Model[] = rawModels.map((model) => {
     },
     experiments,
     templates: model.templates
-      .map(template => new Template({
-        templatePath: join(templateDirectory, template.file),
-        experimentId: template.experimentId,
-        condition: template.experimentCondition
-      }))
-      .filter(template => existsSync(template.templatePath) && !!experiments.find(experiment => experiment.id === template.experimentId && experiment.conditions.includes(template.condition))),
+      .map((template) => {
+        const templateConfig = template as any;
+        const experiment = experiments.find((entry) => entry.id === template.experimentId);
+        const fallbackConditionId = experiment?.conditions.at(0)?.id;
+        const normalizedConditions =
+          templateConfig.experimentConditions ||
+          (templateConfig.experimentCondition !== undefined && fallbackConditionId
+            ? { [fallbackConditionId]: templateConfig.experimentCondition }
+            : undefined);
+        return new Template({
+          templatePath: join(templateDirectory, template.file),
+          experimentId: template.experimentId,
+          condition: templateConfig.experimentCondition,
+          conditions: normalizedConditions,
+        });
+      })
+      .filter(
+        (template) =>
+          existsSync(template.templatePath) && hasTemplateCondition(template.experimentId, template.conditions, template.condition)
+      ),
     disabled: model.disabled,
   });
 });

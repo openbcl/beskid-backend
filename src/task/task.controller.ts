@@ -74,6 +74,7 @@ export class TaskController {
   }
 
   @Get('/:taskId/results/:fileId/template-data')
+  @ApiQuery({ name: 'condition', required: false, type: Number, description: 'Legacy single-condition selector (optional)' })
   @ApiResponse({
     type: String,
     status: 200,
@@ -84,13 +85,14 @@ export class TaskController {
     @Param() params: TaskIdParam,
     @Param('fileId') fileId: string,
     @Query('experimentId') experimentId: string,
-    @Query('condition') condition: number,
+    @Query('condition') condition?: number,
   ) {
     return this.tasksService.findTaskResultTemplateData(req.sessionId, params.taskId, fileId, experimentId, condition);
   }
 
   @Get('/:taskId/results/:fileId/template-file')
   @Header('Access-Control-Expose-Headers', 'Content-Disposition')
+  @ApiQuery({ name: 'condition', required: false, type: Number, description: 'Legacy single-condition selector (optional)' })
   @ApiResponse({
     status: 200,
     description: 'Converts results of a task into FDS template file.',
@@ -100,7 +102,7 @@ export class TaskController {
     @Param() params: TaskIdParam,
     @Param('fileId') fileId: string,
     @Query('experimentId') experimentId: string,
-    @Query('condition') condition: number
+    @Query('condition') condition?: number
   ) {
     return this.tasksService.findTaskResultTemplateFile(req.sessionId, params.taskId, fileId, experimentId, condition);
   }

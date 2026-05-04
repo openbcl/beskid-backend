@@ -6,7 +6,6 @@ npm-debug.log
 dist
 data
 training
-python/*
 !python/*.py
 !python/*.pth
 !.git/HEAD

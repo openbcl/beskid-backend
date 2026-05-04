@@ -6,7 +6,7 @@ import { extension } from '../config';
 import { Task, TaskResult, TaskResultEvaluation } from '../task/task';
 import { ModelPartial } from '../model/model';
 import { Job, RedisJob } from './job';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { UUID } from 'crypto';
 
 @Injectable()
@@ -48,9 +48,11 @@ export class QueueService extends WorkerHost {
     if (this.script.endsWith('test.py')) {
       await new Promise((resolve) => setTimeout(resolve, Math.floor(10000 * Math.random())));
     }
-    execSync(`python ${this.script} ${bullJob.data.model.name} ${task.setting.id} ${task.setting.condition} ${task.inputFilename} ${resultFileName}`, {
-      cwd: task.directory,
-    });
+    execFileSync(
+      'python',
+      [this.script, bullJob.data.model.name, task.setting.id, JSON.stringify(task.setting.conditions), task.inputFilename, resultFileName],
+      { cwd: task.directory }
+    );
     const result = {
       filename: resultFileName + extension,
       uriFile: `/v1/tasks/${task.id}/results/${resultFileName + extension}`,
